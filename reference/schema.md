@@ -104,4 +104,27 @@ Mục nào không cần thì bỏ hẳn khoá đó.
 nền → thẻ (label/spec/stat/chapter/source) → móc giá (lớp sau người qua matte) → wordmark → làm tối nền sáng → từ khoá → ưu đãi → chips → câu trích → dãy số liệu → nhãn đường → chuyển cảnh → khung kết → vệt sáng → watermark.
 
 ## 4 · File sinh ra trong DA
-`words.json`, `words_cut.json`, `cut.mp4`, `segments.json` (prep) · `matte.mp4`, `head.json` (prep) · `broll_916/`, `broll/index.json`, `broll/sheet_*.jpg` (broll) · `base.mp4` → `fx.mp4` → `final.mp4` · `qc/` (ảnh thử, bảng ảnh, qc_report.txt, qc_flags.jpg).
+`words.json`, `words_cut.json`, `cut.mp4`, `segments.json` (prep) · `matte.mp4`, `head.json` (prep) · `broll_916/`, `broll/index.json`, `broll/sheet_*.jpg` (broll) · `broll_916/MAP*.mp4`, `geo_cache.json` (map) · `base.mp4` → `fx.mp4` → `final.mp4` · `qc/` (ảnh thử, bảng ảnh, qc_report.txt, qc_flags.jpg).
+
+## 5 · `DA/map.json` — bản đồ khoảng cách (lệnh `map`)
+Dùng khi lời anh nói vị trí / khoảng cách tới tiện ích. Dựng thành clip B-roll 9:16: vệ tinh, ghim vàng BĐS, đường đi thật chạy tới từng tiện ích đúng lúc được nhắc, thẻ km vàng nhũ.
+```json
+{"maps": [{
+  "id": "MAP1", "t": 20.0, "d": 8.0,            // t = giây trên video (cut.mp4) bản đồ bắt đầu; d = dài
+  "title": "Kết nối tiện ích",                   // tuỳ chọn: nhãn chương trên cùng
+  "home": {"name": "ERA City", "sub": "Vị trí dự án", "at": "12.6680, 108.0380"},
+  "items": [                                     // thứ tự & giây theo lời anh
+    {"name": "Chợ Buôn Ma Thuột", "t": 21.3, "at": "12.68, 108.04"},   // at bỏ trống → tra tên OSM (hay nhầm, phải soát)
+    {"name": "Sân bay BMT", "t": 25.8, "km": 9}                         // km anh đưa → hiện đúng số anh đưa
+  ],
+  "dist": "road",                                // road = đường bộ OSRM (mặc định) | line = chim bay (ghi rõ trên hình)
+  "show_min": false,                             // true = thêm "≈ N phút" (thời gian OSRM tính cho ô tô — chỉ bật khi anh muốn)
+  "rings": [1, 3],                               // tuỳ chọn: vòng bán kính km quanh BĐS
+  "note": null                                   // dòng nguồn dưới đáy; null = tự ghi (Bing · OSM)
+}]}
+```
+- `at` nhận: `"12.68, 108.05"` (Google Maps: nhấn giữ điểm → chép), link Google Maps, `[lat, lon]`, `{"lat","lon"}`.
+- **Luôn chạy `map DA --check` trước**, đưa anh bảng vị trí + km để xác nhận (tra tên OSM hay ra nhầm nơi; km tính lệch km anh ghi > 25 % → script cảnh báo). Anh sửa → điền `at`/`km`.
+- `map DA --frames 21,26` xem ảnh thử → `map DA` dựng → thêm vào edit.json `{"t": 20.0, "d": 8.0, "src": "MAP1", "move": "none"}`. Chạy `map` **sau** `broll` (broll ghi lại index.json).
+- Thẻ tự né nhau, nằm trong vùng an toàn; trong lúc bản đồ hiện, không đặt keyword/thẻ của ads.json đè lên (chỉ watermark).
+- Mỗi tiện ích ~1.3–1.5 s là đọc kịp; nhiều hơn 5–6 tiện ích → tách 2 bản đồ.

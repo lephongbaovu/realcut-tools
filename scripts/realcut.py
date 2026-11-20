@@ -4,6 +4,7 @@ Lệnh (DA = thư mục dự án):
   aroll OUT.mp4 clip1 clip2[@a-b] … [--speed 1.1]   ghép nhiều clip người nói + tăng tốc (không lệch tiếng)
   prep  AROLL.mp4 DA [--model medium] [--clip a-b]  phiên âm → cắt lặng → cắt khung 9:16 bám người → matte
   broll THU_MUC DA [--mode auto|crop|blur]          chuẩn hoá B-roll 9:16 (DA/broll_916) + bảng ảnh chỉ mục
+  map   DA [--check] [--frames a,b]       bản đồ khoảng cách BĐS → tiện ích (DA/map.json) → B-roll DA/broll_916/<id>.mp4
   fix   DA "sai=>đúng" …                  sửa chữ nghe sai (giữ mốc)
   cut   AROLL.mp4 DA [--keep a-b] [--drop a-b]      cắt lại (giây GỐC) khi cắt nhầm/sót
   phrases DA                              lời theo cụm + giây cut → viết edit.json + ads.json
@@ -145,6 +146,7 @@ def main():
     elif cmd == 'broll':
         src, da = args[0], args[1]; out = os.path.join(da, 'broll_916')
         sh('prep_broll.py', src, out, *args[2:]); sh('broll_index.py', out, da)
+    elif cmd == 'map': sh('mapfx.py', *args)
     elif cmd == 'fix': fix(args[0], args[1:])
     elif cmd == 'phrases': phrases(args[0])
     elif cmd == 'base': sh('base.py', *args)

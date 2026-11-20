@@ -7,6 +7,8 @@ Anh nói tới đâu, hình tới đó (sớm 2–4 khung).
 - Đất nền: nói vị trí → flycam từ điểm mốc dễ nhận về lô; nói thông số → thẻ ngang × dài, thổ cư, hướng, lộ giới.
 - Nhà phố: nói tới phòng nào → cảnh phòng đó; cảnh trong nhà nối cùng hướng đi như khách đang đi xem.
 
+- Nói khoảng cách tới tiện ích ("cách chợ 2 km, bệnh viện 5 phút") → bản đồ khoảng cách (`map`), mỗi tiện ích hiện đúng lúc được nhắc; flycam thật vẫn hơn bản đồ khi chỉ nói chung chung "vị trí đẹp".
+
 ## Người xem Reels
 - Nhiều người xem tắt tiếng: ý quan trọng chỉ nằm trong lời → nên có chữ.
 - 3 s đầu quyết định xem tiếp: khung đầu có hình mạnh + chữ cho câu mở đầu, chuyển động sớm, tránh mở từ màn đen/logo. Khung đầu = ảnh bìa. Chạy ads → có thể đề xuất 2–3 biến thể mở đầu để A/B (anh quyết).
