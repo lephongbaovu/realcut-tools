@@ -432,8 +432,7 @@ def main():
         wr = Writer(out, W, H, FPS, crf=16, preset='medium'); n = int(round(m.d * FPS))
         for i in range(n): wr.write(np.ascontiguousarray(m.frame(i / FPS)))
         wr.close(); register(a.da, m.id, out, m.d)
-        ev = [{'kind': 'route', 't': round(it['rel'] - 0.12, 3), 'd': round(it['dur'], 3)} for it in m.items] + \
-             [{'kind': 'pop', 't': round(it['rel'] - 0.12 + it['dur'] + 0.02, 3)} for it in m.items]
+        ev = [{'kind': 'route', 't': round(it['rel'] - 0.12, 3), 'd': round(it['dur'], 3)} for it in m.items]
         if m.items: ev.append({'kind': 'out', 't': round(m.t_over - 0.1, 3)})
         save_json(os.path.join(od, f'{m.id}_sfx.json'), {'events': ev})   # mix tự thêm tiếng kết nối
         print(f'  ✓ {out} · {m.d:.1f}s → edit.json: {{"t": {m.t0}, "d": {m.d}, "src": "{m.id}", "move": "none"}}')

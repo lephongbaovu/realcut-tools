@@ -25,6 +25,15 @@ def write_wav(path, x, sr=SR):
     with wave.open(path, 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((x * 32767).astype(np.int16).tobytes())
 
+def synth_ranh(path, d=1.0):
+    """tiếng chạy viền ranh giới (như vucut): 'vút' quét 0.1 s 0.9→14.6 kHz + lấp lánh nốt cao rung ~37 Hz suốt lúc viền vẽ."""
+    sr = SR; t = np.arange(int(sr * .1)) / sr; f = 900 * (14600 / 900) ** (t / .1)
+    sw = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.sin(np.pi * t / .1) ** .5
+    t2 = np.arange(int(sr * d)) / sr; Pk = [(5286, -18.4), (7048, 0), (9984, -3.9), (10573, -26.7), (11160, -21.6), (11747, -3.6), (13509, -6.1)]
+    sh = sum(10 ** (g / 20) * np.sin(2 * np.pi * fr * t2 + k) for k, (fr, g) in enumerate(Pk)) * (.25 + .75 * (.5 + .5 * np.cos(2 * np.pi * 36.7 * t2)))
+    sh *= np.minimum(1, t2 / .01) * np.minimum(1, (d - t2) / .04)
+    x = np.concatenate([sw / np.abs(sw).max() * .8, sh / np.abs(sh).max()]); write_wav(path, x / np.abs(x).max() * .89)
+
 def synth(kind, path):
     """SFX tổng hợp: whoosh (nhiễu quét), hit (boom trầm), shimmer (lấp lánh cao)."""
     rng = np.random.default_rng(7)
@@ -77,7 +86,7 @@ def main():
     voice = cfg.get('voice', os.path.join(a.da, 'cut.mp4'))
     sfxd = os.path.join(a.da, 'sfx_synth'); os.makedirs(sfxd, exist_ok=True)
     lib = dict(cfg.get('sfx_lib', {}))
-    for k in ('whoosh', 'hit', 'shimmer', 'route', 'pop', 'out'):
+    for k in ('whoosh', 'hit', 'shimmer', 'out'):
         if not lib.get(k) or not os.path.exists(lib[k]):
             p = os.path.join(sfxd, k + '.wav')
             if not os.path.exists(p): synth(k, p)
@@ -98,16 +107,24 @@ def main():
             keep.append(e); last = e[1]
     # tiếng kết nối của bản đồ (mốc do mapfx ghi) — giữ hết, không lọc thưa
     E = load_json(os.path.join(a.da, 'edit.json'), {})
+    def ranh(d):
+        pth = os.path.join(sfxd, f'ranh_{d:.2f}.wav')
+        if not os.path.exists(pth): synth_ranh(pth, d)
+        return pth
+    rdb = cfg.get('ranh_db', -20)
+    for pl in A.get('plot', []):                # đồ hoạ lô đất: tiếng chạy viền khi ranh được vẽ
+        keep.append((ranh(pl.get('draw', 0.8)), pl['t0'], rdb))
     if cfg.get('map_sfx', True):
-        lv = {'route': -15, 'pop': -13, 'out': -17}
+        lv = {'out': -19}
         for b in E.get('broll', []):
             src = str(b.get('src', ''))
             mp = os.path.join(a.da, 'broll_916', os.path.splitext(os.path.basename(src))[0] + '_sfx.json')
             if not os.path.exists(mp): continue
             for e in load_json(mp, {}).get('events', []):
                 tt = b['t'] + e['t'] - b.get('in', 0)
-                if b['t'] - 0.05 <= tt <= b['t'] + b['d']:
-                    keep.append((e['kind'], tt + (peak_time(lib[e['kind']]) * 0.6 if e['kind'] == 'route' else 0), lv[e['kind']]))
+                if not (b['t'] - 0.05 <= tt <= b['t'] + b['d']): continue
+                if e['kind'] == 'route': keep.append((ranh(e.get('d', 1.0)), tt - 0.05, rdb))   # viền đường chạy = tiếng ranh
+                elif e['kind'] in lv: keep.append((e['kind'], tt, lv[e['kind']]))
     for e in cfg.get('sfx', []):               # danh sách tay: giữ hết
         keep.append((e['file'], e['t'], e.get('db', -12)))
     keep.sort(key=lambda e: e[1])
@@ -132,7 +149,7 @@ def main():
         path = lib.get(f, f)
         if not os.path.exists(path): print('  ⚠ bỏ SFX thiếu file:', path); continue
         inputs += ['-i', path]
-        st = max(0.0, t - peak_time(path)); ms = int(st * 1000)
+        st = max(0.0, t - (0 if os.path.basename(path).startswith('ranh_') else peak_time(path))); ms = int(st * 1000)
         fc.append(f'[{n0 + len(labels)}:a]aresample=48000,volume={db}dB,adelay={ms}|{ms}[e{len(labels)}]')
         labels.append(f'[e{len(labels)}]')
     if labels:

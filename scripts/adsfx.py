@@ -84,6 +84,12 @@ def cline(img, text, font, size, cx, base, op, color='cream', tracking=0.0, shad
     T.over(img, sp, cx - sp['w'] / 2 - sp['xoff'], base - sp['base'], op)
     return sp
 
+def _cut_poly(pts, p):
+    if p >= 1 or len(pts) < 2: return pts
+    seg = np.hypot(*(pts[1:] - pts[:-1]).T); cum = np.concatenate([[0], np.cumsum(seg)]); L = cum[-1] * p
+    j = max(1, min(int(np.searchsorted(cum, L)), len(pts) - 1)); f = (L - cum[j - 1]) / max(seg[j - 1], 1e-6)
+    return np.vstack([pts[:j], (pts[j - 1] + (pts[j] - pts[j - 1]) * f)[None]])
+
 def warm_dim(img, y0, y1, strength):
     if strength <= 0.002: return
     a, b = int(H * y0), int(H * y1)
@@ -265,6 +271,9 @@ class FX:
                 d = max(d, env_)
             elif k.get('dim'):                      # "dim": 0.3 → tối nhẹ cả khung khi chữ nằm trên trời sáng
                 d = max(d, env_ * float(k['dim']) / dk)
+        for pl in self.A.get('plot', []):
+            if pl.get('dim') and pl['t0'] <= t <= pl['t1'] + 0.35:
+                d = max(d, ease((t - pl['t0']) / 0.28) * clamp((pl['t1'] + 0.32 - t) / 0.32) * float(pl['dim']) / dk)
         q = self.A.get('quote')
         if q and q.get('darken', True) and q['t0'] <= t <= q['t1'] + 0.35:
             d = max(d, ease((t - q['t0']) / 0.28) * clamp((q['t1'] + 0.32 - t) / 0.32))
@@ -318,6 +327,80 @@ class FX:
                 if sc == 'gold': gline(img, sub, 'serif_xbi', ssz, W / 2, sy + (1 - kk) * 6, kk)
                 else: cline(img, sub, 'serif_xbi', ssz * 0.92, W / 2, sy + (1 - kk) * 6, kk, color=sc, tracking=0.01, shadow=0.75)
             return
+
+    # —— 3b · ĐỒ HOẠ LÔ ĐẤT (ngang × dài): mặt đất phối cảnh nhẹ, viền vàng chạy quanh ranh, kích thước sáng theo lời ——
+    def plot(self, img, t):
+        for pl in self.A.get('plot', []):
+            t0, t1 = pl['t0'], pl['t1']
+            if not (t0 - 0.02 <= t <= t1 + 0.3): continue
+            op = ease((t - t0) / 0.3) * (1 - eio((t - t1) / 0.3))
+            if op <= 0: continue
+            wm, lm = float(pl.get('w', 10)), float(pl.get('l', 15))
+            Sm = pl.get('scale', 40.0) * 10 / max(wm, 1) * min(1.0, 15 / max(lm, 1) * 1.0)   # px / m ở mép trước
+            cx = W * pl.get('x', 0.5); by = H * pl.get('y', 0.40) + (1 - ease((t - t0) / 0.45)) * 18
+            fy = pl.get('tilt', 0.8); pers = pl.get('pers', 0.008)
+            def P(x, y):                             # x: ngang (m), y: sâu (m, 0 = mặt tiền)
+                f = 1 / (1 + y * pers); return (cx + (x - wm / 2) * Sm * f, by - y * Sm * fy * f)
+            SS = 3; ov = np.zeros((H, W, 3), np.uint8); a = np.zeros((H, W), np.float32)
+            def poly(pts, col, alpha):
+                L = np.zeros((H, W), np.uint8); pp = np.round(np.array(pts) * 8).astype(np.int32)
+                cv2.fillPoly(L, [pp], 255, cv2.LINE_AA, 3); m = L.astype(np.float32) / 255 * alpha
+                for c in range(3): ov[..., c] = (ov[..., c] * (1 - m) + col[c] * m).astype(np.uint8)
+                np.maximum(a, m, out=a)
+            def line(pts, col, th, alpha):
+                L = np.zeros((H, W), np.uint8); pp = np.round(np.array(pts) * 8).astype(np.int32)
+                cv2.polylines(L, [pp], False, 255, th, cv2.LINE_AA, 3); m = L.astype(np.float32) / 255 * alpha
+                for c in range(3): ov[..., c] = (ov[..., c] * (1 - m) + col[c] * m).astype(np.uint8)
+                np.maximum(a, m, out=a)
+            corners = [P(0, 0), P(wm, 0), P(wm, lm), P(0, lm)]
+            # đường trước mặt tiền
+            if pl.get('road', True):
+                poly([P(-3, 0.4), P(wm + 3, 0.4), P(wm + 3, -4.2), P(-3, -4.2)], (52, 50, 48), 0.9)
+                for x in np.arange(-2.4, wm + 2.6, 1.6):
+                    line([P(x, -1.9), P(x + 0.8, -1.9)], (236, 214, 170), 2, 0.7)
+            # mặt đất + lưới mờ
+            poly([(x + 10, y + 14) for x, y in corners], (10, 8, 6), 0.35); poly(corners, (146, 108, 66), 0.88)
+            for x in np.arange(1, wm, 1): line([P(x, 0), P(x, lm)], (236, 214, 170), 1, 0.22)
+            for y in np.arange(1, lm, 1): line([P(0, y), P(wm, y)], (236, 214, 170), 1, 0.22)
+            # viền ranh chạy quanh lô
+            per = [P(0, 0), P(wm, 0), P(wm, lm), P(0, lm), P(0, 0)]
+            dr = pl.get('draw', 0.8); kd = eio((t - t0 - 0.05) / dr)
+            if kd > 0:
+                pts = _cut_poly(np.array(per, np.float32), kd)
+                line(pts, (24, 18, 12), 9, 0.45); line(pts, PALETTE['gold'], 5, 1.0); line(pts, (255, 247, 214), 2, 0.85)
+            # mép nhấn (ngang / dài) sáng lên đúng lúc nói
+            hl = {k: tt for k, tt in pl.get('hl', [])}
+            le = (P(0, 0), P(0, lm)) if pl.get('l_side', 'right') == 'left' else (P(wm, 0), P(wm, lm))
+            for key, (p1, p2) in (('w', (P(0, 0), P(wm, 0))), ('l', le)):
+                if key in hl:
+                    kh = ease((t - hl[key]) / 0.35)
+                    if kh > 0: line([p1, p2], PALETTE['gold_hi'], 10, 0.9 * kh)
+            np.clip(a, 0, 1, out=a); a *= op
+            img[:] = (img.astype(np.float32) * (1 - a[..., None]) + ov.astype(np.float32) * a[..., None]).astype(np.uint8)
+            # nhãn kích thước
+            if 'w' in hl:
+                kh = ease((t - hl['w']) / 0.35) * op
+                x0, y0 = P(0, 0); x1, _ = P(wm, 0); yy = y0 + 64
+                if kh > 0:
+                    sp = G(pl.get('w_text', f'{wm:g} m'.replace('.', ',')), 'serif_black', pl.get('dim_size', 70))
+                    T.over(img, sp, (x0 + x1) / 2 - sp['w'] / 2, yy + 34 - sp['base'] + (1 - kh) * 8, kh)
+                    if pl.get('front'):
+                        lab = S(pl['front'].upper(), 'semibold', 26, 'cream', 0.3, 0.7)
+                        T.over(img, lab, (x0 + x1) / 2 - lab['w'] / 2 - lab['xoff'], yy + 52, kh)
+            if 'l' in hl:
+                kh = ease((t - hl['l']) / 0.35) * op
+                if kh > 0:
+                    left = pl.get('l_side', 'right') == 'left'
+                    (xa, ya), (xb, yb) = (P(0, 0), P(0, lm)) if left else (P(wm, 0), P(wm, lm))
+                    sp = G(pl.get('l_text', f'{lm:g} m'.replace('.', ',')), 'serif_black', pl.get('dim_size', 70))
+                    x_ = (min(xa, xb) - 26 - sp['w'] - (1 - kh) * 10) if left else (max(xa, xb) + 26 + (1 - kh) * 10)
+                    T.over(img, sp, x_, (ya + yb) / 2 + sp['h'] * 0.25 - sp['base'] + 10, kh)
+            if pl.get('inside') and t >= pl.get('inside_t', t0):
+                ki = ease((t - pl.get('inside_t', t0)) / 0.35) * op
+                (xa, ya), (xb, yb) = P(0, lm * 0.5), P(wm, lm * 0.5)
+                sp = G(pl['inside'], 'serif_black', pl.get('inside_size', 58))
+                sp = T.scaled(sp, min(1.0, (xb - xa) * 0.9 / sp['w']))
+                T.over(img, sp, (xa + xb) / 2 - sp['w'] / 2, (ya + yb) / 2 + sp['h'] * 0.3 - sp['base'], ki)
 
     # —— 4 · câu trích (2 tầng: kem + vàng nhũ nghiêng) ——
     def quote(self, img, t):
@@ -589,6 +672,7 @@ class FX:
             self.hook_fg(img, t)
         self.wordmark(img, t)
         dim_all(img, self.darkness(img, t))
+        self.plot(img, t)
         self.keywords(img, t)
         self.offer(img, t)
         self.chips(img, t)

@@ -72,6 +72,11 @@ Mục nào không cần thì bỏ hẳn khoá đó.
    {"t": 45.52, "d": 4.8, "numbered": true, "items": [{"text": "Tự kinh doanh", "t": 46.21}]}
  ],
  "stats": {"t0": 19.48, "t1": 22.69, "items": [["~1,2 ha", "DIỆN TÍCH ĐẤT"], ["1 hầm · 7 tầng", "QUY MÔ"]]},
+ "plot": [                             // ĐỒ HOẠ LÔ ĐẤT ngang × dài (đất nền): viền vàng chạy quanh ranh (kèm tiếng ranh như vucut), mép sáng + số đúng lúc nói
+   {"t0": 10.90, "t1": 12.55, "w": 10, "l": 15, "x": 0.5, "y": 0.37,   // y = mép mặt tiền (tỉ lệ H); đặt vào khoảng trống, không che người
+    "scale": 38, "hl": [["w", 10.92], ["l", 11.46]], "front": "Mặt tiền", "inside": "FULL THỔ CƯ", "inside_t": 12.05,
+    "l_side": "right", "dim": 0.2, "draw": 0.8}                   // không trùng thời gian với keyword/móc giá (chừa 0.3 s mờ dần)
+ ],
  "road": {                             // nhãn đường chạy dọc con đường trên flycam, bám chuyển động
    "t0": 15.0, "t1": 16.96, "ref_t": 15.9,          // ref_t = khung tham chiếu để chấm p1, p2
    "p1": [328, 466], "p2": [928, 652], "at": 0.5,   // 2 điểm trên TIM ĐƯỜNG (px 1080×1920) tại ref_t; at = vị trí nhãn
