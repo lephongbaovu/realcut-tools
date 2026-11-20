@@ -38,7 +38,7 @@ Mục nào không cần thì bỏ hẳn khoá đó.
 {
  "brand": {"name": "ERA City", "hotline": "0949.435.499"},
  "display_font": "lpv",                // font chữ nhấn — mặc định LPV Display (font riêng anh Vũ, duy nhất); chỉ đổi khi anh yêu cầu
- "watermark": {"text": "LE PHONG VU", "font": "business", "size": 34, "tracking": 0.32, "opacity": 0.42},  // bỏ trống = mặc định này · false = tắt · luôn là lớp chìm dưới cùng
+ "watermark": {"text": "LE PHONG VU", "font": "business", "size": 37, "tracking": 0.32, "opacity": 0.50},  // bỏ trống = mặc định này · false = tắt · luôn là lớp chìm dưới cùng
  "hotline_card": {"t0": 46.46, "t1": 48.67, "number": "0949.435.499", "x": 0.80, "y": 0.565},   // khung HOTLINE nhỏ (nhãn trắng + số vàng nhũ) đặt khoảng trống cạnh người; thay khung kết
  "darken": 0.52,                       // mức tối khung khi chữ hiện trên nền sáng
 

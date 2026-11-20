@@ -7,9 +7,9 @@
  "watermark": {
   "text": "LE PHONG VU",
   "font": "business",
-  "size": 34,
+  "size": 37,
   "tracking": 0.32,
-  "opacity": 0.42,
+  "opacity": 0.5,
   "shadow": 0.4
  },
  "darken": 0.52,

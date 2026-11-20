@@ -642,7 +642,7 @@ class FX:
         wmc = self.A.get('watermark')                  # chuỗi, hoặc {"text","font","size","tracking","opacity"}
         if wmc is False: return                         # "watermark": false = tắt
         cfg = wmc if isinstance(wmc, dict) else ({'text': wmc} if wmc else
-              {'text': 'LE PHONG VU', 'font': 'business', 'size': 34, 'tracking': 0.32, 'opacity': 0.42})   # mặc định anh Vũ duyệt
+              {'text': 'LE PHONG VU', 'font': 'business', 'size': 37, 'tracking': 0.32, 'opacity': 0.50})   # mặc định anh Vũ duyệt
         txt = cfg.get('text')
         if not txt: return
         if self.wm is None: self.wm = T.sprite(txt, cfg.get('font', 'medium_italic'), cfg.get('size', 30), cfg.get('color', 'cream'),
