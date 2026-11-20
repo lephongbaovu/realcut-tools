@@ -93,6 +93,18 @@ def main():
     ap.add_argument('da'); ap.add_argument('--video'); ap.add_argument('--out')
     a = ap.parse_args()
     A = load_json(os.path.join(a.da, 'ads.json'), {}); cfg = A.get('audio', {})
+    if 'music' not in cfg:                        # mặc định anh Vũ duyệt: "Life is a Dream" (Mixkit 837), drop đúng lúc chốt giá
+        cfg = dict(cfg); mp = os.path.join(os.path.expanduser('~'), '.realcut', 'music', 'mixkit_837_life_is_a_dream.mp3')
+        if not os.path.exists(mp):
+            os.makedirs(os.path.dirname(mp), exist_ok=True)
+            subprocess.run(['curl', '-sL', '-m', '120', '-o', mp, 'https://assets.mixkit.co/music/837/837.mp3'])
+        if os.path.exists(mp) and os.path.getsize(mp) > 100000:
+            cfg['music'] = mp; cfg.setdefault('pre_drop_gain', 2.0)
+            hk = A.get('hook')
+            if 'drop' not in cfg and hk: cfg['drop'] = {'track': 8.1, 'video': hk['price_t'] + float(hk.get('count', 0) or 0)}
+            print('  · nhạc mặc định: Life is a Dream (Mixkit)')
+        else: print('  ⚠ không tải được nhạc mặc định — xuất không nhạc')
+    elif cfg.get('music') is False: cfg = dict(cfg); cfg.pop('music')   # "music": false = không nhạc
     vid = a.video or os.path.join(a.da, 'fx.mp4')
     if not os.path.exists(vid): die(f'Không thấy {vid} — chạy `fx` trước')
     out = a.out or os.path.join(a.da, 'final.mp4')

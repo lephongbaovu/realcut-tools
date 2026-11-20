@@ -100,7 +100,7 @@ Mục nào không cần thì bỏ hẳn khoá đó.
          "price": "7,5 TỶ", "price_tag": "GIÁ FULL", "cta": "Nhận bảng giá & ưu đãi đợt đầu", "hotline": "0949.435.499"},
 
  "audio": {
-   "music": "music/nhac.mp3",          // nhạc miễn phí bản quyền hoặc người dùng đưa (bỏ trống = không nhạc)
+   "music": "music/nhac.mp3",          // BỎ TRỐNG = nhạc mặc định anh Vũ duyệt "Life is a Dream" (Mixkit 837, tự tải, drop tự đặt lúc chốt giá, pre_drop_gain 2.0) · false = không nhạc
    "drop": {"track": 15.84, "video": 3.38},   // giây drop trong bài → giây cần drop trong video (thường = price_t)
    "music_gain": 0.2, "lufs": -14,          // mặc định 0.2 = nhạc nền thấp hơn giọng ~10–12 dB (anh Vũ duyệt)          // nhạc dưới giọng ~8–9 LU là vừa · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
   
