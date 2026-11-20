@@ -37,7 +37,11 @@ FONT_FILES = {
     'business':     'Cinzel-SemiBold.ttf',
     'montserrat':   'Montserrat-Black.ttf',     # chữ nhấn sans đậm, số rõ (OFL)
     'anton':        'Anton-Regular.ttf',        # chữ nhấn cao, đậm, gọn (OFL)
-    'oswald':       'Oswald-Bold.ttf',          # chữ nhấn cao vừa, cứng cáp (OFL)
+    'oswald':       'Oswald-Bold.ttf',
+    'bevn':         'BeVietnamPro-ExtraBold.ttf',   # chữ nhấn: Be Vietnam Pro (thiết kế cho tiếng Việt)
+    'lexend':       'Lexend-ExtraBold.ttf',         # chữ nhấn: rộng, hiện đại, dễ đọc
+    'barlow':       'BarlowCondensed-ExtraBold.ttf',# chữ nhấn: cao gọn, nhiều chữ vẫn vừa khung
+    'josefin':      'JosefinSans-Bold.ttf',         # chữ nhấn: hình học thanh lịch          # chữ nhấn cao vừa, cứng cáp (OFL)
     'display':      'Montserrat-Black.ttf',     # = font chữ lớn/điểm nhấn (mặc định anh Vũ chọn); ads.json "display_font" đổi được
 }
 
