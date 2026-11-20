@@ -139,6 +139,9 @@ def main():
         inputs += ['-ss', f'{max(0, mi):.3f}', '-i', cfg['music']]
         g = cfg.get('music_gain', 0.5); endt = A.get('end', {}).get('t', dur)
         vol = f"if(lt(t,{endt}),{g},{g}+0.30*min(1,(t-{endt})/0.8))"
+        pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
+        if pg and 'drop' in cfg:
+            dv = cfg['drop']['video']; vol = f"({vol})*if(lt(t,{dv - 0.15:.2f}),{pg},1)"
         fc.append(f"[2:a]atrim=0:{dur:.2f},asetpts=PTS-STARTPTS,aresample=48000,volume='{vol}':eval=frame,"
                   f"afade=t=in:d=0.25,afade=t=out:st={dur - 1.6:.2f}:d=1.6[mu]")
         fc.append('[mu][vsc]sidechaincompress=threshold=0.05:ratio=3.5:attack=20:release=350:makeup=1[mud]')

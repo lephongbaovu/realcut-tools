@@ -98,7 +98,8 @@ Mục nào không cần thì bỏ hẳn khoá đó.
  "audio": {
    "music": "music/nhac.mp3",          // nhạc miễn phí bản quyền hoặc người dùng đưa (bỏ trống = không nhạc)
    "drop": {"track": 15.84, "video": 3.38},   // giây drop trong bài → giây cần drop trong video (thường = price_t)
-   "music_gain": 0.5, "lufs": -14,
+   "music_gain": 0.5, "lufs": -14,          // nhạc dưới giọng ~8–9 LU là vừa · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
+  
    "sfx_auto": true,                   // whoosh ở transitions, hit ở giá + khung kết, shimmer ở offer (thưa ≥ 2.5 s)
    "sfx_lib": {"whoosh": "", "hit": "", "shimmer": ""},   // file riêng; trống → tự tổng hợp (không bản quyền)
    "sfx": [{"file": "sfx/tick.mp3", "t": 12.3, "db": -14}]
