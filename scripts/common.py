@@ -42,8 +42,8 @@ FONT_FILES = {
     'lexend':       'Lexend-ExtraBold.ttf',         # chữ nhấn: rộng, hiện đại, dễ đọc
     'barlow':       'BarlowCondensed-ExtraBold.ttf',# chữ nhấn: cao gọn, nhiều chữ vẫn vừa khung
     'josefin':      'JosefinSans-Bold.ttf',         # chữ nhấn: hình học thanh lịch
-    'lpv':          'LPVDisplay-ExtraBold.ttf',     # FONT RIÊNG anh Vũ: Be Vietnam Pro hẹp 90 % + nghiêng 7° (bản thử)
-    'lpv_black':    'LPVDisplay-Black.ttf',         # LPV dày (+): nền Be Vietnam Pro Black
+    'lpv':          'LPVDisplay-Black.ttf',         # FONT RIÊNG anh Vũ (chính thức): Be Vietnam Pro Black hẹp 90 % + nghiêng 7°
+    'lpv_old':      'LPVDisplay-ExtraBold.ttf',     # LPV bản đầu (mảnh hơn)
     'lpv_heavy':    'LPVDisplay-Heavy.ttf',         # LPV dày hơn (++): Black + làm đậm nét thêm
     'robotoslab':   'RobotoSlab-Black.ttf',         # chữ nhấn có chân vuông, chắc chắn
     'merriweather': 'Merriweather-Black.ttf',       # chữ nhấn có chân, kiểu báo chí uy tín
@@ -52,7 +52,7 @@ FONT_FILES = {
     'paytone':      'PaytoneOne-Regular.ttf',       # chữ nhấn tròn, đậm, thân thiện
     'bricolage':    'Bricolage-ExtraBold.ttf',      # chữ nhấn hiện đại có cá tính
     'exo2':         'Exo2-Black.ttf',               # chữ nhấn công nghệ, góc cạnh          # chữ nhấn cao vừa, cứng cáp (OFL)
-    'display':      'LPVDisplay-ExtraBold.ttf', # = font DUY NHẤT cho mọi chữ lớn/điểm nhấn (anh Vũ chốt LPV Display)
+    'display':      'LPVDisplay-Black.ttf',     # = font DUY NHẤT cho mọi chữ nhấn (anh Vũ chốt LPV Display bản dày)
 }
 
 def set_display_font(key):
