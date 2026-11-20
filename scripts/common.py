@@ -50,7 +50,7 @@ FONT_FILES = {
     'paytone':      'PaytoneOne-Regular.ttf',       # chữ nhấn tròn, đậm, thân thiện
     'bricolage':    'Bricolage-ExtraBold.ttf',      # chữ nhấn hiện đại có cá tính
     'exo2':         'Exo2-Black.ttf',               # chữ nhấn công nghệ, góc cạnh          # chữ nhấn cao vừa, cứng cáp (OFL)
-    'display':      'Montserrat-Black.ttf',     # = font chữ lớn/điểm nhấn (mặc định anh Vũ chọn); ads.json "display_font" đổi được
+    'display':      'LPVDisplay-ExtraBold.ttf', # = font DUY NHẤT cho mọi chữ lớn/điểm nhấn (anh Vũ chốt LPV Display)
 }
 
 def set_display_font(key):
