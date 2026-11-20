@@ -43,6 +43,7 @@ Mục nào không cần thì bỏ hẳn khoá đó.
  "hook": {                             // MÓC GIÁ 0–7 s: giá so sánh bị gạch → giá chính vàng nhũ cực to
    "strike": [["8 TỶ", 0.11, 0.93, 0.180], ["9 TỶ", 1.18, 1.69, 0.236]],  // [chữ, hiện, gạch, y]
    "price": "7,5 TỶ", "price_t": 3.38, "price_size": 250, "price_y": 0.312,
+   "count": 0.9,                       // tuỳ chọn: số chạy lên 0.9 s rồi chốt + chớp vàng + tiếng đếm (thay tiếng hit)
    "behind_until": 5.13,               // trước mốc này giá nằm SAU người nói (cần matte); sau đó nằm trên hình
    "out": 7.0,                         // cả khối rời đi
    "tag": "GIÁ FULL", "tag_t": 4.14, "tag_y": 0.352,

@@ -246,6 +246,8 @@ class Map:
     def sprites(self):
         self.pin = T.pin_icon(78)
         self.hname = T.sprite(T.nfc(self.home_name.upper()), 'display', T.fit_size(self.home_name.upper(), 'display', 54, W * 0.7), 'gold', shadow=0.4) if self.home_name else None
+        lab = self.s['home'].get('label')          # chữ nhỏ cạnh ghim, vd "Vị trí" (dùng khi bỏ thẻ tên)
+        self.hlab = T.sprite(T.nfc(lab.upper()), 'semibold', 30, 'cream', tracking=0.24, shadow=0.7) if lab else None
         self.hsub = T.sprite(T.nfc(self.s['home'].get('sub', '').upper()), 'semibold', 24, 'cream', tracking=0.22) if self.s['home'].get('sub') else None
         for it in self.items:
             ks = T.sprite(T.nfc(it['km']), 'display', 66, 'gold', shadow=0.35)
@@ -348,6 +350,13 @@ class Map:
                 _blend(img, lambda L: cv2.circle(L, (int(hx), int(hy)), int(14 + 70 * k), GOLD_HI, 3, cv2.LINE_AA), 0.7 * (1 - k) * e0)
             cv2.circle(img, (int(hx), int(hy)), 7, GOLD, -1, cv2.LINE_AA)
             pin = self.pin; T.over(img, pin, hx - pin['w'] / 2, hy - pin['h'] * 0.97 - (1 - e0) * 60, e0)
+            if self.hlab:
+                el = T.ease_out((t - 0.35) / 0.4); lb = self.hlab
+                lx = hx + pin['w'] * 0.5 + 14
+                if lx + lb['w'] > SAFE[2] * W: lx = hx - pin['w'] * 0.5 - 14 - lb['w']
+                ly = hy - pin['h'] * 0.62 - lb['h'] / 2
+                T.over(img, lb, lx - lb.get('xoff', 0), ly + (1 - el) * 8, el)
+                T.hline(img, lx, ly + lb['h'] + 4, lb['w'] * el, 2, 'gold', el)
         if self.hname:
             e = T.ease_out((t - 0.35) / 0.45) * (1 - T.clamp01((t - self.t_hide) / 0.3)) + T.ease_out((t - self.t_over - 0.3) / 0.45) * (t > self.t_hide)
             if e > 0:

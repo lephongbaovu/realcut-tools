@@ -6,7 +6,7 @@
   python adsfx.py DA --sheet 0.5           bảng ảnh toàn video → DA/qc/fx_sheet.jpg
 Mọi mốc thời gian trong ads.json = giây của cut.mp4 (đã 1.1×). Cấu trúc ads.json: reference/schema.md
 """
-import argparse, math, os, subprocess, sys, time
+import argparse, math, os, re, subprocess, sys, time
 import numpy as np, cv2
 from common import load_json, probe, die, PALETTE, Writer, set_display_font
 import textfx as T
@@ -201,12 +201,27 @@ class FX:
         h = self.A['hook']; p0, out = h['price_t'], h['out']
         k = ease((t - p0) / 0.5); fo = 1 - eio((t - out) / 0.27)
         if fo <= 0: return
-        sc = 1.18 - 0.18 * k
-        sp = G(h['price'], 'display', h.get('price_size', 250))
-        spx = T.scaled(sp, sc) if sc != 1 else sp
+        cd = float(h.get('count', 0) or 0)          # "count": 0.9 → số chạy lên trong 0.9 s rồi chốt, chớp sáng vàng
+        sc = (1.18 - 0.18 * k) if not cd else 1.0 + 0.16 * max(0.0, 1 - (t - p0 - cd) / 0.35) * (t >= p0 + cd)
+        txt = h['price']
+        if cd and t < p0 + cd:
+            m = re.match(r'([\d.,]+)(.*)', txt)
+            if m:
+                v = float(m.group(1).replace('.', '').replace(',', '.')); kk = 1 - (1 - clamp((t - p0) / cd)) ** 3
+                n = v * kk; dec = ',' in m.group(1)
+                txt = (f'{n:.1f}'.replace('.', ',') if dec else f'{int(round(n)):,}'.replace(',', '.')) + m.group(2)
+        sp = G(txt, 'display', h.get('price_size', 250)); full = G(h['price'], 'display', h.get('price_size', 250))
+        spx = T.scaled(sp, sc) if abs(sc - 1) > 1e-3 else sp
         base = H * h.get('price_y', 0.312)
-        T.over(img, spx, W / 2 - spx['w'] / 2, base - spx['base'], min(1, (t - p0) / 0.11) * fo)
-        for ts in (p0 + 0.21, h.get('behind_until', p0 + 1.8) + 0.05):
+        if cd:                                      # chớp sáng vàng lúc chốt giá
+            fk = (t - p0 - cd) / 0.6
+            if 0 <= fk <= 1:
+                cx_, cy_ = int(W / 2), int(base - full['h'] * 0.35); rad = int(full['w'] * (0.45 + 0.35 * fk))
+                L = np.zeros_like(img); cv2.ellipse(L, (cx_, cy_), (rad, int(rad * 0.42)), 0, 0, 360, (255, 214, 140), -1)
+                L = cv2.GaussianBlur(L, (0, 0), 38); a_ = 0.55 * (1 - fk) ** 1.5 * fo
+                img[:] = np.clip(img.astype(np.float32) + L.astype(np.float32) * a_, 0, 255).astype(np.uint8)
+        T.over(img, spx, W / 2 - spx['w'] / 2 + (full['w'] - sp['w']) * 0 , base - spx['base'], min(1, (t - p0) / 0.11) * fo)
+        for ts in ((p0 + cd + 0.05) if cd else (p0 + 0.21), h.get('behind_until', p0 + 1.8) + 0.05):
             ks = (t - ts) / 0.7
             if 0 <= ks <= 1:
                 sh = shimmer(sp, ks); sh = T.scaled(sh, sc) if sc != 1 else sh

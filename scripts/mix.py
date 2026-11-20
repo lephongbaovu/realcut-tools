@@ -34,6 +34,20 @@ def synth_ranh(path, d=1.0):
     sh *= np.minimum(1, t2 / .01) * np.minimum(1, (d - t2) / .04)
     x = np.concatenate([sw / np.abs(sw).max() * .8, sh / np.abs(sh).max()]); write_wav(path, x / np.abs(x).max() * .89)
 
+def synth_count(path, d=0.9, n=24):
+    """tiếng số chạy (như vucut): tiếng tách dày dần thưa theo đường ease-out + chốt chuông sáng + đệm trầm — đặt đầu file = lúc số bắt đầu chạy."""
+    sr = SR; rng = np.random.default_rng(7); L = int(sr * (d + 1.1)); x = np.zeros(L)
+    ts = [d * (1 - (1 - k / (n + 1)) ** (1 / 3)) for k in range(1, n + 1)]          # khớp số chạy 1-(1-t)^3
+    for k, t in enumerate(ts):
+        m = np.arange(int(sr * .018)) / sr; f = 2600 + 1400 * k / n
+        c = (np.sin(2 * np.pi * f * m) * .6 + rng.standard_normal(len(m)) * .4) * np.exp(-m * 380)
+        a = int(t * sr); x[a:a + len(c)] += c * (.45 + .25 * k / n)
+    m = np.arange(int(sr * 1.0)) / sr
+    bell = sum(g * np.sin(2 * np.pi * f * m) * np.exp(-m * dk) for f, g, dk in [(1568, 1, 4.5), (2352, .55, 6), (3136, .35, 8), (4704, .18, 11)])
+    th = np.sin(2 * np.pi * np.cumsum(90 + 60 * np.exp(-m * 40)) / sr) * np.exp(-m * 14) * .9
+    a = int(d * sr); seg = (bell * .6 + th)[:L - a]; x[a:a + len(seg)] += seg
+    write_wav(path, x / np.abs(x).max() * .89)
+
 def synth(kind, path):
     """SFX tổng hợp: whoosh (nhiễu quét), hit (boom trầm), shimmer (lấp lánh cao)."""
     rng = np.random.default_rng(7)
@@ -97,7 +111,7 @@ def main():
         sd = {'whoosh': -14, 'hit': -6, 'shimmer': -14, 'end_hit': -9}; sd.update(cfg.get('sfx_db', {}))   # chỉnh mức SFX tự động
         for t, _ in A.get('transitions', []): ev.append(('whoosh', t, sd['whoosh']))
         h = A.get('hook')
-        if h: ev.append(('hit', h['price_t'], sd['hit']))
+        if h and not h.get('count'): ev.append(('hit', h['price_t'], sd['hit']))
         o = A.get('offer')
         if o: ev.append(('shimmer', o['t0'] + 0.35, sd['shimmer']))
         if A.get('end'): ev.append(('hit', A['end']['t'] + 0.2, sd['end_hit']))
@@ -113,6 +127,11 @@ def main():
         if not os.path.exists(pth): synth_ranh(pth, d)
         return pth
     rdb = cfg.get('ranh_db', -20)
+    hk = A.get('hook')
+    if hk and hk.get('count') and cfg.get('sfx_auto', True):    # giá chạy số: tiếng đếm + chốt chuông (thay tiếng hit)
+        cp_ = os.path.join(sfxd, f"count_{float(hk['count']):.2f}.wav")
+        if not os.path.exists(cp_): synth_count(cp_, float(hk['count']))
+        keep.append((cp_, hk['price_t'], cfg.get('sfx_db', {}).get('count', -17)))
     for pl in A.get('plot', []):                # đồ hoạ lô đất: tiếng chạy viền khi ranh được vẽ
         keep.append((ranh(pl.get('draw', 0.8)), pl['t0'], rdb))
     if cfg.get('map_sfx', True):
@@ -153,7 +172,7 @@ def main():
         path = lib.get(f, f)
         if not os.path.exists(path): print('  ⚠ bỏ SFX thiếu file:', path); continue
         inputs += ['-i', path]
-        st = max(0.0, t - (0 if os.path.basename(path).startswith('ranh_') else peak_time(path))); ms = int(st * 1000)
+        st = max(0.0, t - (0 if os.path.basename(path).startswith(('ranh_', 'count_')) else peak_time(path))); ms = int(st * 1000)
         fc.append(f'[{n0 + len(labels)}:a]aresample=48000,volume={db}dB,adelay={ms}|{ms}[e{len(labels)}]')
         labels.append(f'[e{len(labels)}]')
     if labels:
