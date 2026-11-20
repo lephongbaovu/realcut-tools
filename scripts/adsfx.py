@@ -424,9 +424,9 @@ class FX:
         if not hc or not (hc['t0'] - 0.02 <= t <= hc['t1'] + 0.3): return
         k = ease((t - hc['t0']) / 0.35); op = k * (1 - eio((t - hc['t1']) / 0.3))
         if op <= 0: return
-        num = G(hc['number'], hc.get('font', 'black'), hc.get('size', 104))
-        lab = S(hc.get('label', 'HOTLINE').upper(), 'semibold', hc.get('label_size', 36), 'white', 0.38, 0.5)
-        pad = hc.get('pad', 110 if hc.get('size', 104) > 70 else 56); pw = max(num['w'], lab['w']) + pad; ph = lab['h'] + num['h'] + pad * 0.55
+        num = G(hc['number'], hc.get('font', 'display'), hc.get('size', 42))
+        lab = S(hc.get('label', 'HOTLINE').upper(), 'semibold', hc.get('label_size', 20), 'white', 0.38, 0.5)
+        pad = hc.get('pad', 110 if hc.get('size', 42) > 70 else 40); pw = max(num['w'], lab['w']) + pad; ph = lab['h'] + num['h'] + pad * 0.55
         if 'y' in hc: y0 = H * hc['y']
         else:
             ht = self.head_top(hc['t0'], hc['t1']); y0 = (H * 0.30 if ht is None else ht - 40) - ph
@@ -640,7 +640,9 @@ class FX:
     # —— 10 · watermark SĐT trôi chậm ——
     def watermark(self, img, t):
         wmc = self.A.get('watermark')                  # chuỗi, hoặc {"text","font","size","tracking","opacity"}
-        cfg = wmc if isinstance(wmc, dict) else {'text': wmc or self.A.get('brand', {}).get('hotline')}
+        if wmc is False: return                         # "watermark": false = tắt
+        cfg = wmc if isinstance(wmc, dict) else ({'text': wmc} if wmc else
+              {'text': 'LE PHONG VU', 'font': 'business', 'size': 34, 'tracking': 0.32, 'opacity': 0.42})   # mặc định anh Vũ duyệt
         txt = cfg.get('text')
         if not txt: return
         if self.wm is None: self.wm = T.sprite(txt, cfg.get('font', 'medium_italic'), cfg.get('size', 30), cfg.get('color', 'cream'),

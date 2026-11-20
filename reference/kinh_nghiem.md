@@ -32,3 +32,9 @@ Theo câu kết trong kịch bản; hotline ~2 s để kịp chụp màn hình; 
 
 ## Soát bằng mắt (`fx --sheet 0.5`)
 (1) chỉ hình + chữ có kể đúng câu chuyện anh nói? (2) âm thanh final: từ bị cắt, nhạc đè giọng? (3) nhịp: chuyển động ngược chiều, hai cảnh cùng cỡ nối nhau, chữ chồng chữ? (4) khung đầu và 3 s đầu.
+
+## Bài học từ video đất nền đã duyệt (Tránh Đông 10×15, 11/2026)
+- Chữ không bao giờ che người; các khối (giá, đồ hoạ, từ khoá) nối tiếp, chừa ~0.3 s, không chồng.
+- Nhạc là nền: anh Vũ chỉnh nhỏ dần tới music_gain ~0.2; SFX phải nhẹ, không làm giật mình. Đổi nhạc: chọn Mixkit theo mood, tải https://assets.mixkit.co/music/<id>/<id>.mp3 (đã duyệt: 837 Life is a Dream).
+- Kiểm tra mức nhạc/giọng bằng số đo, không đoán: tách stem (demucs --two-stems=vocals) rồi đo LUFS từng stem.
+- Đồ hoạ phối cảnh không được làm sai tỉ lệ (dài 15 phải trông dài hơn ngang 10).

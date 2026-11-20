@@ -37,13 +37,16 @@ Mục nào không cần thì bỏ hẳn khoá đó.
 ```json
 {
  "brand": {"name": "ERA City", "hotline": "0949.435.499"},
- "watermark": "0949.435.499",          // SĐT trôi chậm, nghiêng, mờ 0.38 (null = tắt)
+ "display_font": "lpv",                // font chữ nhấn — mặc định LPV Display (font riêng anh Vũ, duy nhất); chỉ đổi khi anh yêu cầu
+ "watermark": {"text": "LE PHONG VU", "font": "business", "size": 34, "tracking": 0.32, "opacity": 0.42},  // bỏ trống = mặc định này · false = tắt · luôn là lớp chìm dưới cùng
+ "hotline_card": {"t0": 46.46, "t1": 48.67, "number": "0949.435.499", "x": 0.80, "y": 0.565},   // khung HOTLINE nhỏ (nhãn trắng + số vàng nhũ) đặt khoảng trống cạnh người; thay khung kết
  "darken": 0.52,                       // mức tối khung khi chữ hiện trên nền sáng
 
  "hook": {                             // MÓC GIÁ 0–7 s: giá so sánh bị gạch → giá chính vàng nhũ cực to
    "strike": [["8 TỶ", 0.11, 0.93, 0.180], ["9 TỶ", 1.18, 1.69, 0.236]],  // [chữ, hiện, gạch, y]
    "price": "7,5 TỶ", "price_t": 3.38, "price_size": 250, "price_y": 0.312,
    "count": 0.9,                       // tuỳ chọn: số chạy lên 0.9 s rồi chốt + chớp vàng + tiếng đếm (thay tiếng hit)
+   "count": 2.14,                      // giá chạy số từ price_t (đầu câu "với mức giá…") tới hết chữ đơn vị; chốt = to lên rồi hạ ("pop": 0.14); "flash": true mới có chớp sáng; "dim": 0 mặc định (mở đầu sáng)
    "behind_until": 5.13,               // trước mốc này giá nằm SAU người nói (cần matte); sau đó nằm trên hình
    "out": 7.0,                         // cả khối rời đi
    "tag": "GIÁ FULL", "tag_t": 4.14, "tag_y": 0.352,
@@ -99,9 +102,9 @@ Mục nào không cần thì bỏ hẳn khoá đó.
  "audio": {
    "music": "music/nhac.mp3",          // nhạc miễn phí bản quyền hoặc người dùng đưa (bỏ trống = không nhạc)
    "drop": {"track": 15.84, "video": 3.38},   // giây drop trong bài → giây cần drop trong video (thường = price_t)
-   "music_gain": 0.5, "lufs": -14,          // nhạc dưới giọng ~8–9 LU là vừa · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
+   "music_gain": 0.2, "lufs": -14,          // mặc định 0.2 = nhạc nền thấp hơn giọng ~10–12 dB (anh Vũ duyệt)          // nhạc dưới giọng ~8–9 LU là vừa · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
   
-   "sfx_auto": true,                   // whoosh ở transitions, hit ở giá + khung kết, shimmer ở offer (thưa ≥ 2.5 s)
+   "sfx_auto": true,  "sfx_db": {"whoosh": -24, "hit": -17, "count": -17, "out": -27}, "ranh_db": -26,   // mức mặc định đã hạ, chỉ ghi khi cần đổi                   // whoosh ở transitions, hit ở giá + khung kết, shimmer ở offer (thưa ≥ 2.5 s)
    "sfx_lib": {"whoosh": "", "hit": "", "shimmer": ""},   // file riêng; trống → tự tổng hợp (không bản quyền)
    "sfx": [{"file": "sfx/tick.mp3", "t": 12.3, "db": -14}]
  }
@@ -120,7 +123,8 @@ Dùng khi lời anh nói vị trí / khoảng cách tới tiện ích. Dựng th
 {"maps": [{
   "id": "MAP1", "t": 20.0, "d": 8.0,            // t = giây trên video (cut.mp4) bản đồ bắt đầu; d = dài
   "title": "Kết nối tiện ích",                   // tuỳ chọn: nhãn chương trên cùng
-  "home": {"name": "ERA City", "sub": "Vị trí dự án", "at": "12.6680, 108.0380"},
+  "home": {"name": "", "label": "Vị trí", "at": "12.6680, 108.0380"},   // anh Vũ duyệt: không thẻ tên, chỉ chữ nhỏ "Vị trí" cạnh ghim
+  "zoom": 3.0,                                   // camera zoom gần lô rồi chạy theo đầu tuyến đường
   "items": [                                     // thứ tự & giây theo lời anh
     {"name": "Chợ Buôn Ma Thuột", "t": 21.3, "at": "12.68, 108.04"},   // at bỏ trống → tra tên OSM (hay nhầm, phải soát)
     {"name": "Sân bay BMT", "t": 25.8, "km": 9}                         // km anh đưa → hiện đúng số anh đưa
