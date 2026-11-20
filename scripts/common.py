@@ -41,7 +41,15 @@ FONT_FILES = {
     'bevn':         'BeVietnamPro-ExtraBold.ttf',   # chữ nhấn: Be Vietnam Pro (thiết kế cho tiếng Việt)
     'lexend':       'Lexend-ExtraBold.ttf',         # chữ nhấn: rộng, hiện đại, dễ đọc
     'barlow':       'BarlowCondensed-ExtraBold.ttf',# chữ nhấn: cao gọn, nhiều chữ vẫn vừa khung
-    'josefin':      'JosefinSans-Bold.ttf',         # chữ nhấn: hình học thanh lịch          # chữ nhấn cao vừa, cứng cáp (OFL)
+    'josefin':      'JosefinSans-Bold.ttf',         # chữ nhấn: hình học thanh lịch
+    'lpv':          'LPVDisplay-ExtraBold.ttf',     # FONT RIÊNG anh Vũ: Be Vietnam Pro hẹp 90 % + nghiêng 7° (bản thử)
+    'robotoslab':   'RobotoSlab-Black.ttf',         # chữ nhấn có chân vuông, chắc chắn
+    'merriweather': 'Merriweather-Black.ttf',       # chữ nhấn có chân, kiểu báo chí uy tín
+    'unbounded':    'Unbounded-Black.ttf',          # chữ nhấn rất rộng, hiện đại (câu dài dễ tràn)
+    'bigshoulders': 'BigShoulders-Black.ttf',       # chữ nhấn cao hẹp, kiểu bảng hiệu đô thị
+    'paytone':      'PaytoneOne-Regular.ttf',       # chữ nhấn tròn, đậm, thân thiện
+    'bricolage':    'Bricolage-ExtraBold.ttf',      # chữ nhấn hiện đại có cá tính
+    'exo2':         'Exo2-Black.ttf',               # chữ nhấn công nghệ, góc cạnh          # chữ nhấn cao vừa, cứng cáp (OFL)
     'display':      'Montserrat-Black.ttf',     # = font chữ lớn/điểm nhấn (mặc định anh Vũ chọn); ads.json "display_font" đổi được
 }
 
