@@ -37,7 +37,7 @@ def synth_ranh(path, d=1.0):
 def synth_count(path, d=0.9, n=24):
     """tiếng số chạy (như vucut): tiếng tách dày dần thưa theo đường ease-out + chốt chuông sáng + đệm trầm — đặt đầu file = lúc số bắt đầu chạy."""
     sr = SR; rng = np.random.default_rng(7); L = int(sr * (d + 1.1)); x = np.zeros(L)
-    ts = [d * (1 - (1 - k / (n + 1)) ** (1 / 3)) for k in range(1, n + 1)]          # khớp số chạy 1-(1-t)^3
+    ts = [d * (1 - (1 - k / (n + 1)) ** (1 / 2)) for k in range(1, n + 1)]          # khớp số chạy 1-(1-t)^2
     for k, t in enumerate(ts):
         m = np.arange(int(sr * .018)) / sr; f = 2600 + 1400 * k / n
         c = (np.sin(2 * np.pi * f * m) * .6 + rng.standard_normal(len(m)) * .4) * np.exp(-m * 380)
@@ -130,7 +130,7 @@ def main():
     hk = A.get('hook')
     if hk and hk.get('count') and cfg.get('sfx_auto', True):    # giá chạy số: tiếng đếm + chốt chuông (thay tiếng hit)
         cp_ = os.path.join(sfxd, f"count_{float(hk['count']):.2f}.wav")
-        if not os.path.exists(cp_): synth_count(cp_, float(hk['count']))
+        if not os.path.exists(cp_): synth_count(cp_, float(hk['count']), n=max(18, int(float(hk['count']) * 16)))
         keep.append((cp_, hk['price_t'], cfg.get('sfx_db', {}).get('count', -17)))
     for pl in A.get('plot', []):                # đồ hoạ lô đất: tiếng chạy viền khi ranh được vẽ
         keep.append((ranh(pl.get('draw', 0.8)), pl['t0'], rdb))

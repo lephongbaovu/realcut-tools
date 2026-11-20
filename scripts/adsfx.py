@@ -202,18 +202,18 @@ class FX:
         k = ease((t - p0) / 0.5); fo = 1 - eio((t - out) / 0.27)
         if fo <= 0: return
         cd = float(h.get('count', 0) or 0)          # "count": 0.9 → số chạy lên trong 0.9 s rồi chốt, chớp sáng vàng
-        sc = (1.18 - 0.18 * k) if not cd else 1.0 + 0.16 * max(0.0, 1 - (t - p0 - cd) / 0.35) * (t >= p0 + cd)
+        sc = (1.18 - 0.18 * k) if not cd else 1.0 + h.get('pop', 0.14) * math.sin(math.pi * clamp((t - p0 - cd) / 0.45))   # chốt giá: to lên rồi hạ xuống
         txt = h['price']
         if cd and t < p0 + cd:
             m = re.match(r'([\d.,]+)(.*)', txt)
             if m:
-                v = float(m.group(1).replace('.', '').replace(',', '.')); kk = 1 - (1 - clamp((t - p0) / cd)) ** 3
+                v = float(m.group(1).replace('.', '').replace(',', '.')); kk = 1 - (1 - clamp((t - p0) / cd)) ** 2
                 n = v * kk; dec = ',' in m.group(1)
                 txt = (f'{n:.1f}'.replace('.', ',') if dec else f'{int(round(n)):,}'.replace(',', '.')) + m.group(2)
         sp = G(txt, 'display', h.get('price_size', 250)); full = G(h['price'], 'display', h.get('price_size', 250))
         spx = T.scaled(sp, sc) if abs(sc - 1) > 1e-3 else sp
         base = H * h.get('price_y', 0.312)
-        if cd:                                      # chớp sáng vàng lúc chốt giá
+        if cd and h.get('flash', False):            # chớp sáng vàng lúc chốt giá (tuỳ chọn)
             fk = (t - p0 - cd) / 0.6
             if 0 <= fk <= 1:
                 cx_, cy_ = int(W / 2), int(base - full['h'] * 0.35); rad = int(full['w'] * (0.45 + 0.35 * fk))
