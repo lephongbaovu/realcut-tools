@@ -746,6 +746,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('da'); ap.add_argument('--frames'); ap.add_argument('--sheet', type=float)
     ap.add_argument('--guides', action='store_true'); ap.add_argument('--out')
+    ap.add_argument('--draft', action='store_true', help='bản nháp nhanh: 540×960, 15 khung/s → DA/fx_draft.mp4')
     a = ap.parse_args()
     src = os.path.join(a.da, 'base.mp4')
     if not os.path.exists(src): die('Chưa có DA/base.mp4 — chạy `realcut.py base DA` trước')
@@ -778,17 +779,21 @@ def main():
             cv2.imwrite(os.path.join(qc, 'fx_sheet.jpg'), sheet[..., ::-1], [cv2.IMWRITE_JPEG_QUALITY, 85])
         print(f'✓ {len(ts)} khung → {qc}')
         return
-    out = a.out or os.path.join(a.da, 'fx.mp4')
-    wr = Writer(out, W, H, FPS, crf=17, preset='medium')
+    out = a.out or os.path.join(a.da, 'fx_draft.mp4' if a.draft else 'fx.mp4')
+    step = 2 if a.draft else 1                        # nháp: vẽ 1/2 số khung, thu 540p, nén nhanh
+    wr = Writer(out, W // 2, H // 2, FPS / 2, crf=26, preset='veryfast') if a.draft else Writer(out, W, H, FPS, crf=17, preset='medium')
     mt = reader(mp, gray=True, vf='scale=1080:1920') if has_m else None
     st = time.time(); n = int(round(t_end * FPS))
     for i, fr in enumerate(reader(src)):
         t = i / FPS
         m = next(mt, None) if mt else None
-        wr.write(np.ascontiguousarray(fx.frame(fr, m, t, t_end)))
+        if i % step: continue
+        im = fx.frame(fr, m, t, t_end)
+        if a.draft: im = cv2.resize(im, (W // 2, H // 2), interpolation=cv2.INTER_AREA)
+        wr.write(np.ascontiguousarray(im))
         if i and i % max(300, n // 4) == 0: print(f'  chữ {i}/{n} · còn ~{(time.time() - st) / i * (n - i):.0f}s', flush=True)
     wr.close()
-    print(f'✓ {out} (có chữ, chưa tiếng)')
+    print(f'✓ {out} (có chữ, chưa tiếng{" · NHÁP 540p" if a.draft else ""}) · {time.time() - st:.0f}s')
 
 if __name__ == '__main__':
     main()

@@ -12,6 +12,7 @@ Lệnh (DA = thư mục dự án):
   fx    DA [--frames a,b] [--sheet .5] [--guides]   tầng B: chữ/hiệu ứng → DA/fx.mp4 (hoặc ảnh thử)
   qc    DA                                tự soát: vùng an toàn, đè đầu, thời gian đọc, nhịp, mở đầu
   mix   DA                                tầng C: âm thanh → DA/final.mp4
+  draft DA                                NHÁP nhanh 540p · 15 khung/s (fx --draft + mix) → DA/draft.mp4 để anh duyệt trước
   all   DA                                base → fx → qc → mix
 """
 import os, re, subprocess, sys
@@ -153,6 +154,10 @@ def main():
     elif cmd == 'fx': sh('adsfx.py', *args)
     elif cmd == 'qc': sh('qc.py', *args)
     elif cmd == 'mix': sh('mix.py', *args)
+    elif cmd == 'draft':                          # bản xem nháp nhanh để duyệt bố cục, chữ, nhịp (không giao khách)
+        da = args[0]
+        sh('adsfx.py', da, '--draft'); sh('mix.py', da, '--video', os.path.join(da, 'fx_draft.mp4'), '--out', os.path.join(da, 'draft.mp4'))
+        print(f'\n👀 Nháp: {os.path.join(da, "draft.mp4")} (540p, 15 khung/s) — anh duyệt xong mới chạy fx + mix bản đẹp.')
     elif cmd == 'all':
         da = args[0]
         sh('base.py', da); sh('adsfx.py', da); sh('qc.py', da, '--step', '0.5'); sh('mix.py', da)
