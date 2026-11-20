@@ -182,7 +182,7 @@ class FX:
         h = self.A.get('hook')
         if not h: return
         out = h['out']
-        warm_dim(img, 0.0, 0.48, 0.62 * T.env(t, 0.0, out + 0.27, 0.32, 0.32))
+        warm_dim(img, 0.0, 0.48, h.get('dim', 0.62) * T.env(t, 0.0, out + 0.27, 0.32, 0.32))   # "dim": 0 = mở đầu sáng
         p0 = h['price_t']
         out_k = 1 - eio((t - (p0 - 0.29)) / 0.29)   # các giá so sánh rời đi ngay trước khi giá chính hiện
         for txt, t0, ts, y in h.get('strike', []):
@@ -401,6 +401,32 @@ class FX:
                 sp = G(pl['inside'], 'serif_black', pl.get('inside_size', 58))
                 sp = T.scaled(sp, min(1.0, (xb - xa) * 0.9 / sp['w']))
                 T.over(img, sp, (xa + xb) / 2 - sp['w'] / 2, (ya + yb) / 2 + sp['h'] * 0.3 - sp['base'], ki)
+
+    # —— 3c · KHUNG HOTLINE: nhãn trắng + số vàng nhũ chữ đậm, đặt trên đầu người nói ——
+    def hotline(self, img, t):
+        hc = self.A.get('hotline_card')
+        if not hc or not (hc['t0'] - 0.02 <= t <= hc['t1'] + 0.3): return
+        k = ease((t - hc['t0']) / 0.35); op = k * (1 - eio((t - hc['t1']) / 0.3))
+        if op <= 0: return
+        num = G(hc['number'], hc.get('font', 'black'), hc.get('size', 104))
+        lab = S(hc.get('label', 'HOTLINE').upper(), 'semibold', hc.get('label_size', 36), 'white', 0.38, 0.5)
+        pw = max(num['w'], lab['w']) + 110; ph = lab['h'] + num['h'] + 64
+        if 'y' in hc: y0 = H * hc['y']
+        else:
+            ht = self.head_top(hc['t0'], hc['t1']); y0 = (H * 0.30 if ht is None else ht - 40) - ph
+            y0 = max(H * SAFE[1], y0)
+        y0 += (1 - k) * 16; x0 = W / 2 - pw / 2
+        T.glass(img, x0, y0, pw, ph, tint=(30, 24, 19), alpha=0.58, opacity=op, radius=30)
+        rm = np.zeros((int(ph), int(pw)), np.uint8)
+        cv2.rectangle(rm, (2, 2), (int(pw) - 3, int(ph) - 3), 255, 2, cv2.LINE_AA)
+        g = T.gradient(int(ph), int(pw), PALETTE['gold_hi'], PALETTE['gold'], PALETTE['gold_lo'])
+        T.over(img, dict(rgb=g, a=rm.astype(np.float32) / 255 * 0.9, base=0, w=int(pw), h=int(ph), xoff=0), x0, y0, op)
+        T.over(img, lab, W / 2 - lab['w'] / 2 - lab['xoff'], y0 + 26, op)
+        T.hline(img, W / 2 - 40, y0 + 26 + lab['h'] + 10, 80, 2, 'gold', op)
+        T.over(img, num, W / 2 - num['w'] / 2, y0 + 40 + lab['h'] + num['h'] * 0.80 - num['base'], op, ) if False else \
+            T.over(img, num, W / 2 - num['w'] / 2, y0 + lab['h'] + 44, op)
+        ks = (t - hc['t0'] - 0.35) / 0.7
+        if 0 <= ks <= 1: T.over(img, shimmer(num, ks), W / 2 - num['w'] / 2, y0 + lab['h'] + 44, 0.8 * op)
 
     # —— 4 · câu trích (2 tầng: kem + vàng nhũ nghiêng) ——
     def quote(self, img, t):
@@ -677,6 +703,7 @@ class FX:
         dim_all(img, self.darkness(img, t))
         self.plot(img, t)
         self.keywords(img, t)
+        self.hotline(img, t)
         self.offer(img, t)
         self.chips(img, t)
         self.quote(img, t)
