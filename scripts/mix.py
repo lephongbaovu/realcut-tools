@@ -157,7 +157,7 @@ def main():
         if 'drop' in cfg:                     # {"track": giây drop trong bài, "video": giây cần drop}
             mi = cfg['drop']['track'] - cfg['drop']['video']
         inputs += ['-ss', f'{max(0, mi):.3f}', '-i', cfg['music']]
-        g = cfg.get('music_gain', 0.2)                 # anh Vũ duyệt: nhạc chỉ làm nền dưới giọng; endt = A.get('end', {}).get('t', dur)
+        g = cfg.get('music_gain', 0.2); endt = A.get('end', {}).get('t', dur)   # anh Vũ duyệt: nhạc chỉ làm nền dưới giọng
         vol = f"if(lt(t,{endt}),{g},{g}+0.30*min(1,(t-{endt})/0.8))"
         pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
         if pg and 'drop' in cfg:
