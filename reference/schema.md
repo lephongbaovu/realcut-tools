@@ -109,7 +109,7 @@ Mục nào không cần thì bỏ hẳn khoá đó.
 ```
 
 ## 3 · Thứ tự vẽ mỗi khung (để hiểu chữ nào nằm trên)
-nền → thẻ (label/spec/stat/chapter/source) → móc giá (lớp sau người qua matte) → wordmark → làm tối nền sáng → từ khoá → ưu đãi → chips → câu trích → dãy số liệu → nhãn đường → chuyển cảnh → khung kết → vệt sáng → watermark.
+nền → watermark (chìm dưới cùng) → thẻ (label/spec/stat/chapter/source) → móc giá (lớp sau người qua matte) → wordmark → làm tối nền sáng → từ khoá → ưu đãi → chips → câu trích → dãy số liệu → nhãn đường → chuyển cảnh → khung kết → vệt sáng.
 
 ## 4 · File sinh ra trong DA
 `words.json`, `words_cut.json`, `cut.mp4`, `segments.json` (prep) · `matte.mp4`, `head.json` (prep) · `broll_916/`, `broll/index.json`, `broll/sheet_*.jpg` (broll) · `broll_916/MAP*.mp4`, `geo_cache.json` (map) · `base.mp4` → `fx.mp4` → `final.mp4` · `qc/` (ảnh thử, bảng ảnh, qc_report.txt, qc_flags.jpg).

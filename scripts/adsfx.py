@@ -701,6 +701,7 @@ class FX:
     def frame(self, base, matte, t, t_end):
         CUR['t'] = t
         img = base.copy()
+        self.watermark(img, t)                       # lớp phủ chìm dưới cùng: nằm dưới mọi chữ, thẻ, đồ hoạ
         dc = self.cards.dim_amount(t)
         if dc > 0.001: img = cv2.addWeighted(img, 1 - dc, np.full_like(img, PALETTE['ink']), dc, 0)
         self.cards.draw(img, t)
@@ -732,7 +733,6 @@ class FX:
                 img = (img.astype(np.float32) * (1 - kx) + b.astype(np.float32) * kx).astype(np.uint8) if kx < 1 else b.copy()
             self.end_card(img, t, t_end)
         img = self.leak(img, t)
-        self.watermark(img, t)
         return img
 
 def guides(img):
