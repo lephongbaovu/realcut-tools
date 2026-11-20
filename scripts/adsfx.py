@@ -8,7 +8,7 @@ Mọi mốc thời gian trong ads.json = giây của cut.mp4 (đã 1.1×). Cấu
 """
 import argparse, math, os, subprocess, sys, time
 import numpy as np, cv2
-from common import load_json, probe, die, PALETTE, Writer
+from common import load_json, probe, die, PALETTE, Writer, set_display_font
 import textfx as T
 from cards import Cards
 
@@ -145,6 +145,7 @@ class FX:
         self.da = da
         self.A = load_json(os.path.join(da, 'ads.json'))
         if self.A is None: die('Chưa có DA/ads.json (xem reference/schema.md + templates/ads_example.json)')
+        set_display_font(self.A.get('display_font'))
         E = load_json(os.path.join(da, 'edit.json'), {})
         self.broll = [(b['t'], b['t'] + b['d']) for b in E.get('broll', [])]
         hj = load_json(os.path.join(da, 'head.json'))
@@ -201,7 +202,7 @@ class FX:
         k = ease((t - p0) / 0.5); fo = 1 - eio((t - out) / 0.27)
         if fo <= 0: return
         sc = 1.18 - 0.18 * k
-        sp = G(h['price'], 'serif_black', h.get('price_size', 250))
+        sp = G(h['price'], 'display', h.get('price_size', 250))
         spx = T.scaled(sp, sc) if sc != 1 else sp
         base = H * h.get('price_y', 0.312)
         T.over(img, spx, W / 2 - spx['w'] / 2, base - spx['base'], min(1, (t - p0) / 0.11) * fo)
@@ -243,7 +244,7 @@ class FX:
         if not w or not (w['t0'] <= t <= w['t1']): return
         e = T.env(t, w['t0'], w['t1'], 0.36, 0.27); k = ease((t - w['t0']) / 0.8)
         warm_dim(img, 0.0, 0.45, 0.68 * e)
-        sp = G(w['text'], 'serif_black', w.get('size', 128))
+        sp = G(w['text'], 'display', w.get('size', 128))
         T.over(img, sp, W / 2 - sp['w'] / 2, H * 0.265 - sp['base'], e)
         if w.get('label'):
             cline(img, w['label'], 'medium', 30, W / 2, H * 0.185, e * ease((t - w['t0'] - 0.18) / 0.36), 'gold_hi', 0.6)
@@ -288,17 +289,17 @@ class FX:
             main, sub = k['main'], k.get('sub', '')
             layout = k.get('layout', 'two')
             if layout == 'stack3':                  # DÒNG NGƯỜI / & / DÒNG TIỀN
-                sz = min(fit(main, 'serif_black', k.get('size', 94), W * 0.80), fit(sub, 'serif_black', k.get('size', 94), W * 0.80))
+                sz = min(fit(main, 'display', k.get('size', 94), W * 0.80), fit(sub, 'display', k.get('size', 94), W * 0.80))
                 by = H * k['y'] if 'y' in k else H * 0.638 - sz * 1.88
-                gline(img, main, 'serif_black', sz, W / 2, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
+                gline(img, main, 'display', sz, W / 2, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
                 k2 = ease((t - t0 - 0.15) / 0.25)
                 gline(img, k.get('amp', '&'), 'serif_xbi', sz * 0.8, W / 2, by + sz * 0.90 + (1 - k2) * 6, k2 * ko)
                 k3 = ease((t - t0 - 0.28) / 0.25)
-                gline(img, sub, 'serif_black', sz, W / 2, by + sz * 1.88 + (1 - k3) * 10, k3 * ko, (t - t0 - 0.4) / 0.7)
+                gline(img, sub, 'display', sz, W / 2, by + sz * 1.88 + (1 - k3) * 10, k3 * ko, (t - t0 - 0.4) / 0.7)
                 return
             if md == 'top':
                 big = k.get('big', False)
-                sz = fit(main, 'serif_black', k.get('size', 215 if big else 176), W * (0.86 if big else 0.84))
+                sz = fit(main, 'display', k.get('size', 215 if big else 176), W * (0.86 if big else 0.84))
                 ssz = fit(sub, 'serif_xbi', k.get('sub_size', 72), W * 0.80) if sub else 0
                 if 'y' in k:
                     by = H * k['y']
@@ -310,17 +311,17 @@ class FX:
                         sz -= 6; by = min(by + 3, H * 0.36)
                 sy = by + sz * 0.5
             elif md == 'bright':
-                sz = fit(main, 'serif_black', k.get('size', 128), W * 0.84)
+                sz = fit(main, 'display', k.get('size', 128), W * 0.84)
                 ssz = fit(sub, 'serif_xbi', k.get('sub_size', 60), W * 0.80) if sub else 0
                 by = H * k.get('y', 0.420); sy = by + 70
             else:                                   # low: dải dưới vùng an toàn
-                sz = fit(main, 'serif_black', k.get('size', 140), W * 0.84)
+                sz = fit(main, 'display', k.get('size', 140), W * 0.84)
                 ssz = fit(sub, 'serif_xbi', k.get('sub_size', 64), W * 0.80) if sub else 0
                 if sub:
                     sy = H * k.get('y_sub', 0.642); by = H * k['y'] if 'y' in k else sy - sz * 0.56
                 else:
                     by = H * k.get('y', 0.630); sy = by
-            gline(img, main, 'serif_black', sz, W / 2, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
+            gline(img, main, 'display', sz, W / 2, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
             if sub:                                 # dòng phụ: mặc định màu kem (chỉ chữ lớn mới vàng nhũ)
                 kk = ease((t - t0 - 0.15) / 0.25) * ko
                 sc = k.get('sub_color', self.A.get('sub_color', 'cream'))
@@ -382,7 +383,7 @@ class FX:
                 kh = ease((t - hl['w']) / 0.35) * op
                 x0, y0 = P(0, 0); x1, _ = P(wm, 0); yy = y0 + 64
                 if kh > 0:
-                    sp = G(pl.get('w_text', f'{wm:g} m'.replace('.', ',')), 'serif_black', pl.get('dim_size', 70))
+                    sp = G(pl.get('w_text', f'{wm:g} m'.replace('.', ',')), 'display', pl.get('dim_size', 70))
                     T.over(img, sp, (x0 + x1) / 2 - sp['w'] / 2, yy + 34 - sp['base'] + (1 - kh) * 8, kh)
                     if pl.get('front'):
                         lab = S(pl['front'].upper(), 'semibold', 26, 'cream', 0.3, 0.7)
@@ -392,13 +393,13 @@ class FX:
                 if kh > 0:
                     left = pl.get('l_side', 'right') == 'left'
                     (xa, ya), (xb, yb) = (P(0, 0), P(0, lm)) if left else (P(wm, 0), P(wm, lm))
-                    sp = G(pl.get('l_text', f'{lm:g} m'.replace('.', ',')), 'serif_black', pl.get('dim_size', 70))
+                    sp = G(pl.get('l_text', f'{lm:g} m'.replace('.', ',')), 'display', pl.get('dim_size', 70))
                     x_ = (min(xa, xb) - 26 - sp['w'] - (1 - kh) * 10) if left else (max(xa, xb) + 26 + (1 - kh) * 10)
                     T.over(img, sp, x_, (ya + yb) / 2 + sp['h'] * 0.25 - sp['base'] + 10, kh)
             if pl.get('inside') and t >= pl.get('inside_t', t0):
                 ki = ease((t - pl.get('inside_t', t0)) / 0.35) * op
                 (xa, ya), (xb, yb) = P(0, lm * 0.5), P(wm, lm * 0.5)
-                sp = G(pl['inside'], 'serif_black', pl.get('inside_size', 58))
+                sp = G(pl['inside'], 'display', pl.get('inside_size', 58))
                 sp = T.scaled(sp, min(1.0, (xb - xa) * 0.9 / sp['w']))
                 T.over(img, sp, (xa + xb) / 2 - sp['w'] / 2, (ya + yb) / 2 + sp['h'] * 0.3 - sp['base'], ki)
 
@@ -449,7 +450,7 @@ class FX:
         warm_dim(img, 0.0, 0.42, 0.50 * k * op)
         val = float(o['value']); cnt = val * ease((t - t0) / 0.6)
         txt = (f'{cnt:.1f}'.replace('.', ',') if val != int(val) else str(int(round(cnt))))
-        num = G(txt, 'serif_black', int(210 * s)); pct = G(o.get('unit', '%'), 'serif_black', int(110 * s))
+        num = G(txt, 'display', int(210 * s)); pct = G(o.get('unit', '%'), 'display', int(110 * s))
         tw = num['w'] + pct['w'] - 12; x0 = W / 2 - tw / 2; base = H * o.get('y', 0.263)
         T.over(img, num, x0, base - num['base'], op * k)
         T.over(img, pct, x0 + num['w'] - 12, base - pct['base'] - 84 * s, op * k)
@@ -491,7 +492,7 @@ class FX:
                     if t < it['t'] - 0.05: continue
                     k = ease((t - it['t'] + 0.05) / 0.35) * eo
                     n, txt = (it['text'][:2], it['text'][2:].strip()) if it['text'][:2].isdigit() else (f'{i + 1:02d}', it['text'])
-                    ns = G(n, 'serif_black', 56)
+                    ns = G(n, 'display', 56)
                     T.over(img, ns, x0 - (1 - k) * 30, by - ns['base'], k)
                     ts = S(txt, 'semibold', 40, 'cream', 0.01, 0.6)
                     tx = x0 + ns['w'] + 18 - (1 - k) * 30
@@ -536,7 +537,7 @@ class FX:
             a = sp['a'][:, :, None]
             cv[y:y + h, x:x + w] = cv[y:y + h, x:x + w] * (1 - a) + sp['rgb'] * a
             ca[y:y + h, x:x + w] = ca[y:y + h, x:x + w] * (1 - a[..., 0]) + a[..., 0]
-        title = G(r['title'], 'serif_black', r.get('size', 104))
+        title = G(r['title'], 'display', r.get('size', 104))
         paste(title, cw / 2 - title['w'] / 2, ly - 16 - title['base'])
         sub = T.sprite(T.nfc(r.get('sub', '')), 'semibold', 30, 'cream', tracking=0.16, shadow=0.7) if r.get('sub') else None
         lw = int(max(title['w'], sub['w'] if sub else 0) + 20)
@@ -651,7 +652,7 @@ class FX:
         e = lambda d, dur=0.5: ease((k0 - d) / dur)
         brand = self.A.get('brand', {})
         k = e(0.2, 0.9); y = H * 0.270
-        sp = G(en.get('title', brand.get('name', '')), 'serif_black', 140)
+        sp = G(en.get('title', brand.get('name', '')), 'display', 140)
         T.over(img, sp, W / 2 - sp['w'] / 2, y - sp['base'], k)
         L = 300 * e(0.5, 0.7); T.hline(img, W / 2 - L / 2, y + 34, L, 2, 'gold', k)
         for i, ln in enumerate(en.get('lines', [])):
@@ -659,7 +660,7 @@ class FX:
             else: cline(img, ln, 'semibold', 38, W / 2, y + 150 + (i - 1) * 50, e(0.85), 'gold_hi', 0.0, 0.6)
         kp = e(1.1)
         if en.get('price') and kp > 0:
-            pr = G(en['price'], 'serif_black', 112)
+            pr = G(en['price'], 'display', 112)
             gf = S(en.get('price_tag', ''), 'black', 32, 'cream', 0.4) if en.get('price_tag') else None
             tw = pr['w'] + ((30 + gf['w'] + 52) if gf else 0); x = W / 2 - tw / 2; base = H * 0.468
             T.over(img, pr, x, base - pr['base'], kp)
@@ -674,7 +675,7 @@ class FX:
             T.over(img, cta, W / 2 - cta['w'] / 2 - cta['xoff'], cy - cta['h'] / 2 - 2, kc)
         kh = e(1.7); hot = en.get('hotline', brand.get('hotline'))
         if hot and kh > 0:
-            hl = S('HOTLINE', 'semibold', 26, 'gold_hi', 0.4, 0.4); ph = G(hot, 'serif_black', 84)
+            hl = S('HOTLINE', 'semibold', 26, 'gold_hi', 0.4, 0.4); ph = G(hot, 'display', 84)
             tw = hl['w'] + 26 + ph['w']; x = W / 2 - tw / 2; base = H * 0.625 + (1 - kh) * 10
             T.over(img, hl, x - hl['xoff'], base - 22 - hl['base'], kh)
             T.over(img, ph, x + hl['w'] + 26, base - ph['base'], kh)

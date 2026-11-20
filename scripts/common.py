@@ -34,8 +34,16 @@ FONT_FILES = {
     'semibold':     'BeVietnamPro_600SemiBold.ttf',
     'medium_italic': 'BeVietnamPro_500Medium_Italic.ttf',
     'light_italic': 'BeVietnamPro_300Light_Italic.ttf',
-    'business':     'Cinzel-SemiBold.ttf',      # chữ hoa kiểu doanh nhân (Cinzel, OFL) — chỉ chữ không dấu
+    'business':     'Cinzel-SemiBold.ttf',
+    'montserrat':   'Montserrat-Black.ttf',     # chữ nhấn sans đậm, số rõ (OFL)
+    'anton':        'Anton-Regular.ttf',        # chữ nhấn cao, đậm, gọn (OFL)
+    'oswald':       'Oswald-Bold.ttf',          # chữ nhấn cao vừa, cứng cáp (OFL)
+    'display':      'PlayfairDisplay_900Black.ttf',   # = font chữ lớn/điểm nhấn; ads.json "display_font" đổi được      # chữ hoa kiểu doanh nhân (Cinzel, OFL) — chỉ chữ không dấu
 }
+
+def set_display_font(key):
+    """đặt font cho mọi chữ lớn / điểm nhấn (vàng nhũ): key trong FONT_FILES hoặc tên file .ttf trong assets/fonts"""
+    if key: FONT_FILES['display'] = FONT_FILES.get(key, key)
 
 def font_path(key):
     return os.path.join(FONTS, FONT_FILES.get(key, key))

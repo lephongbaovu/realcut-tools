@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np, cv2
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import Writer, load_json, save_json, die, PALETTE
+from common import Writer, load_json, save_json, die, PALETTE, set_display_font
 import textfx as T
 
 W, H, FPS = 1080, 1920, 30
@@ -245,10 +245,10 @@ class Map:
     # —— thẻ & bố trí nhãn ——
     def sprites(self):
         self.pin = T.pin_icon(78)
-        self.hname = T.sprite(T.nfc(self.home_name.upper()), 'serif_black', T.fit_size(self.home_name.upper(), 'serif_black', 54, W * 0.7), 'gold', shadow=0.4) if self.home_name else None
+        self.hname = T.sprite(T.nfc(self.home_name.upper()), 'display', T.fit_size(self.home_name.upper(), 'display', 54, W * 0.7), 'gold', shadow=0.4) if self.home_name else None
         self.hsub = T.sprite(T.nfc(self.s['home'].get('sub', '').upper()), 'semibold', 24, 'cream', tracking=0.22) if self.s['home'].get('sub') else None
         for it in self.items:
-            ks = T.sprite(T.nfc(it['km']), 'serif_black', 66, 'gold', shadow=0.35)
+            ks = T.sprite(T.nfc(it['km']), 'display', 66, 'gold', shadow=0.35)
             ns = T.sprite(T.nfc(it['name']), 'semibold', T.fit_size(it['name'], 'semibold', 32, W * 0.38), 'cream')
             ms = T.sprite(T.nfc(f'≈ {it["min"]} phút'), 'medium', 26, 'cream') if it.get('min') else None
             pad = 22; w = max(ks['w'], ns['w'], ms['w'] if ms else 0) + 2 * pad; h = pad + ks['h'] + 4 + ns['h'] + (ms['h'] + 2 if ms else 0) + pad - 6
@@ -415,6 +415,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('da'); ap.add_argument('--check', action='store_true'); ap.add_argument('--frames')
     ap.add_argument('--only'); a = ap.parse_args()
     cfg = load_json(os.path.join(a.da, 'map.json'))
+    set_display_font((cfg or {}).get('display_font') or load_json(os.path.join(a.da, 'ads.json'), {}).get('display_font'))
     if not cfg: die('Chưa có DA/map.json — xem reference/schema.md mục 5')
     cp = os.path.join(a.da, 'geo_cache.json'); cache = load_json(cp, {})
     maps = [m for m in cfg.get('maps', []) if not a.only or m.get('id') == a.only]
