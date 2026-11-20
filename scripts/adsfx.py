@@ -598,12 +598,15 @@ class FX:
 
     # —— 10 · watermark SĐT trôi chậm ——
     def watermark(self, img, t):
-        txt = self.A.get('watermark') or self.A.get('brand', {}).get('hotline')
+        wmc = self.A.get('watermark')                  # chuỗi, hoặc {"text","font","size","tracking","opacity"}
+        cfg = wmc if isinstance(wmc, dict) else {'text': wmc or self.A.get('brand', {}).get('hotline')}
+        txt = cfg.get('text')
         if not txt: return
-        if self.wm is None: self.wm = T.sprite(txt, 'medium_italic', 30, 'cream', tracking=0.06, shadow=0.35)
+        if self.wm is None: self.wm = T.sprite(txt, cfg.get('font', 'medium_italic'), cfg.get('size', 30), cfg.get('color', 'cream'),
+                                               tracking=cfg.get('tracking', 0.06), shadow=cfg.get('shadow', 0.35))
         x = W * 0.5 + W * 0.27 * math.sin(2 * math.pi * t / 26.0) - self.wm['w'] / 2
         y = H * 0.40 + H * 0.17 * math.sin(2 * math.pi * t / 37.0 + 1.1)
-        MASK['skip'] = True; T.over(img, self.wm, x, y, 0.38); MASK['skip'] = False
+        MASK['skip'] = True; T.over(img, self.wm, x, y, cfg.get('opacity', 0.38)); MASK['skip'] = False
 
     # —— 11 · khung kết ——
     def end_bg(self, t):

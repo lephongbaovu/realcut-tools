@@ -34,6 +34,7 @@ FONT_FILES = {
     'semibold':     'BeVietnamPro_600SemiBold.ttf',
     'medium_italic': 'BeVietnamPro_500Medium_Italic.ttf',
     'light_italic': 'BeVietnamPro_300Light_Italic.ttf',
+    'business':     'Cinzel-SemiBold.ttf',      # chữ hoa kiểu doanh nhân (Cinzel, OFL) — chỉ chữ không dấu
 }
 
 def font_path(key):
