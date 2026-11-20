@@ -161,7 +161,8 @@ class Map:
         x, y = world(*p); return ((x - self.cw[0]) * self.k + self.bc[0], (y - self.cw[1]) * self.k + self.bc[1])
 
     def canvas(self):
-        zt = int(min(19, math.ceil(self.ze + 0.35))); self.q = min(2.0, 2 ** (zt - self.ze))
+        zmax = float(self.s.get('zoom', 3.0))                                  # độ zoom gần tối đa của camera
+        zt = int(min(19, math.ceil(self.ze + math.log2(max(1.0, zmax)) + 0.05))); self.q = min(max(2.0, zmax * 1.05), 2 ** (zt - self.ze))
         self.mx, self.my = 0.14 * W, 0.14 * H
         n = 256 * 2 ** zt
         X0 = (self.cw[0] + (-self.mx - self.bc[0]) / self.k) * n; Y0 = (self.cw[1] + (-self.my - self.bc[1]) / self.k) * n
@@ -174,12 +175,72 @@ class Map:
         c = c * np.array((0.90, 0.88, 0.83), np.float32) + np.array((6, 4, 0), np.float32)
         self.cv = np.clip(c, 0, 255).astype(np.uint8)
         yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-        r = np.sqrt(((xx - self.hf[0]) / W) ** 2 + ((yy - self.hf[1]) / H * 0.75) ** 2)
+        r = np.sqrt(((xx - self.bc[0]) / W) ** 2 + ((yy - self.bc[1]) / H * 0.75) ** 2)
         self.vig = np.clip(1.08 - 0.75 * r ** 1.6, 0.45, 1.0)[..., None].astype(np.float32)
 
-    def scale(self, t):
-        a = T.ease_out(t / 1.5)
-        return 1.32 + (1.0 - 1.32) * a - 0.03 * T.clamp01((t - 1.5) / max(self.d - 1.5, 0.1))
+    # —— camera: zoom gần lô đất, bám đầu tuyến đường đang chạy, cuối cùng lùi ra toàn cảnh ——
+    def durs(self):
+        for it in self.items:
+            L = float(np.sum(np.hypot(*(it['rf'][1:] - it['rf'][:-1]).T))) if len(it['rf']) > 1 else 0
+            it['dur'] = float(min(1.8, max(1.0, 0.8 + L / 450)))
+
+    def camera(self):
+        zmax = float(self.s.get('zoom', 3.0)); F = np.array(self.bc); hf = np.array(self.hf)
+        bw, bh = (BOX[2] - BOX[0]) * W, (BOX[3] - BOX[1]) * H
+        def fit(pts):
+            pts = np.vstack([hf[None]] + [np.asarray(p, np.float32).reshape(-1, 2) for p in pts])
+            lo, hi = pts.min(0), pts.max(0); span = np.maximum(hi - lo, 1)
+            sc = min(bw * 0.85 / span[0], bh * 0.85 / span[1]); return min(zmax, max(1.0, sc)), (lo + hi) / 2
+        n = int(round(self.d * FPS)) + 2; raw = np.zeros((n, 3), np.float32)
+        last = self.items[-1] if self.items else None
+        t_over = (last['rel'] - 0.12 + last['dur'] + 0.45) if last else 1e9
+        for i in range(n):
+            t = i / FPS; s_, c_ = zmax * 0.92, hf
+            for it in self.items:
+                st = it['rel'] - 0.12
+                if t < st - 0.35: break
+                p = T.ease_in_out((t - st) / it['dur']); part = _cut(it['rf'], p)
+                s_, c_ = fit([part]); c_ = 0.5 * c_ + 0.5 * (0.35 * hf + 0.65 * part[-1]) if p < 1 else c_
+            if t >= t_over: s_, c_ = 1.0, F
+            raw[i] = (c_[0], c_[1], s_)
+        sm = raw.copy(); k = 1 - math.exp(-1 / (FPS * 0.32))
+        for i in range(1, n): sm[i] = sm[i - 1] + (raw[i] - sm[i - 1]) * k
+        sm[:, 2] = np.minimum(sm[:, 2], zmax)
+        self.cam = sm; self.t_over = t_over
+        self.t_hide = (self.items[0]['rel'] - 0.12 + 0.2) if self.items else 1e9
+        self.place_zoom()
+
+    def place_zoom(self):
+        """Đặt lại thẻ km theo đúng khung camera lúc thẻ hiện (né tuyến đường, ghim, thẻ trước) → off_z.
+        Khi camera lùi ra, thẻ trượt dần về chỗ đặt ở toàn cảnh (off)."""
+        sx0, sx1 = SAFE[0] * W, SAFE[2] * W; top = SAFE[1] * H + (56 if self.title else 0); bot = 0.605 * H
+        ph = self.pin['h']
+        for n, it in enumerate(self.items):
+            ta = it['rel'] - 0.12 + it['dur']; (cx, cy), s = self.cam_at(ta); Fx, Fy = self.bc
+            P = lambda q: (Fx + (q[0] - cx) * s, Fy + (q[1] - cy) * s)
+            it['s_app'] = s
+            hx, hy = P(self.hf); px, py = P(it['pf'])
+            taken = [(hx - ph / 2, hy - ph, ph, ph)]
+            pts = []
+            for j, o in enumerate(self.items[:n + 1]):
+                ox, oy = P(o['pf']); taken.append((ox - 16, oy - 16, 32, 32))
+                pts += [P(q) for q in o['rf'][::2]]
+                if j < n:
+                    w0, h0 = o['card']['w'], o['card']['h']; taken.append((ox + o['off_z'][0], oy + o['off_z'][1], w0, h0))
+            c = it['card']; w, h = c['w'], c['h']; away = 1 if px >= hx else -1
+            best = None
+            for g in (28, 70, 120, 180):
+                for dx, dy in [(g, -h - g), (-w - g, -h - g), (g, g), (-w - g, g), (g + 6, -h / 2), (-w - g - 6, -h / 2), (-w / 2, -h - g - 12), (-w / 2, g + 12)]:
+                    r = (min(max(px + dx, sx0), sx1 - w), min(max(py + dy, top), bot - h), w, h)
+                    ov = sum(_ov(r, o) for o in taken)
+                    rp = sum(1 for qx, qy in pts if r[0] - 8 <= qx <= r[0] + w + 8 and r[1] - 8 <= qy <= r[1] + h + 8)
+                    lead = math.hypot(min(max(px, r[0]), r[0] + w) - px, min(max(py, r[1]), r[1] + h) - py)
+                    sc = ov * 50 + rp * 400 + lead * 3 + (0 if (r[0] + w / 2 - px) * away > 0 else 150)
+                    if best is None or sc < best[0]: best = (sc, r)
+            it['off_z'] = (best[1][0] - px, best[1][1] - py)
+
+    def cam_at(self, t):
+        i = min(len(self.cam) - 1, max(0, int(round(t * FPS)))); c = self.cam[i]; return (float(c[0]), float(c[1])), float(c[2])
 
     # —— thẻ & bố trí nhãn ——
     def sprites(self):
@@ -250,11 +311,12 @@ class Map:
 
     # —— vẽ một khung ——
     def frame(self, t):
-        s = self.scale(t); hx, hy = self.hf; q = self.q
-        M = np.array([[s / q, 0, hx - s * (self.mx + hx)], [0, s / q, hy - s * (self.my + hy)]], np.float32)
+        (cx, cy), s = self.cam_at(t); q = self.q; Fx, Fy = self.bc
+        M = np.array([[s / q, 0, Fx - s * (self.mx + cx)], [0, s / q, Fy - s * (self.my + cy)]], np.float32)
         img = cv2.warpAffine(self.cv, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
         img = (img.astype(np.float32) * self.vig).astype(np.uint8)
-        P = lambda p: (hx + (p[0] - hx) * s, hy + (p[1] - hy) * s)
+        P = lambda p: (Fx + (p[0] - cx) * s, Fy + (p[1] - cy) * s)
+        hx, hy = P(self.hf)
         # vòng bán kính
         for n, km in enumerate(self.rings):
             e = T.ease_out((t - 0.5 - 0.25 * n) / 0.6)
@@ -266,7 +328,7 @@ class Map:
         # tuyến đường
         cur = [i for i, it in enumerate(self.items) if t >= it['rel'] - 0.12]
         for i in cur:
-            it = self.items[i]; p = T.ease_in_out((t - it['rel'] + 0.12) / 0.75)
+            it = self.items[i]; p = T.ease_in_out((t - it['rel'] + 0.12) / it['dur'])
             pts = np.array([P(v) for v in it['rf']], np.float32); part = _cut(pts, p)
             op = 1.0 if i == cur[-1] else 0.55
             if len(part) >= 2:
@@ -287,15 +349,16 @@ class Map:
             cv2.circle(img, (int(hx), int(hy)), 7, GOLD, -1, cv2.LINE_AA)
             pin = self.pin; T.over(img, pin, hx - pin['w'] / 2, hy - pin['h'] * 0.97 - (1 - e0) * 60, e0)
         if self.hname:
-            e = T.ease_out((t - 0.35) / 0.45)
+            e = T.ease_out((t - 0.35) / 0.45) * (1 - T.clamp01((t - self.t_hide) / 0.3)) + T.ease_out((t - self.t_over - 0.3) / 0.45) * (t > self.t_hide)
             if e > 0:
-                x, y, w, h = self.hrect; y += (1 - e) * 14
+                x, y, w, h = self.hrect; x += hx - self.hf[0]; y += hy - self.hf[1] + (1 - e) * 14
+                x = min(max(x, SAFE[0] * W), SAFE[2] * W - w); y = min(max(y, SAFE[1] * H + (60 if self.title else 0)), 0.605 * H - h)
                 T.glass(img, x, y, w, h, alpha=0.5, radius=int(h / 2.6), opacity=e)
                 T.over(img, self.hname, x + w / 2 - self.hname['w'] / 2, y + 15, e)
                 if self.hsub: T.over(img, self.hsub, x + w / 2 - self.hsub['w'] / 2, y + 15 + self.hname['h'] + 6, e)
         # điểm tiện ích + thẻ
         for i in cur:
-            it = self.items[i]; tp = t - it['rel'] + 0.12 - 0.75
+            it = self.items[i]; tp = t - it['rel'] + 0.12 - it['dur']
             pe = T.ease_out(tp / 0.25)
             if pe <= 0: continue
             px, py = P(it['pf'])
@@ -303,7 +366,10 @@ class Map:
             cv2.circle(img, (int(px), int(py)), int(7 * pe), (255, 250, 235), -1, cv2.LINE_AA)
             ce = T.ease_out((tp + 0.1) / 0.35) * (1.0 if i == cur[-1] else 0.8)
             if ce <= 0: continue
-            c = it['card']; x, y = px + it['off'][0], py + it['off'][1] + (1 - ce) * 12
+            c = it['card']; sa = it.get('s_app', 1.0); oz = it.get('off_z', it['off'])
+            b = 1.0 if sa <= 1.01 else T.clamp01((s - 1.0) / (sa - 1.0))
+            ox, oy = it['off'][0] + (oz[0] - it['off'][0]) * b, it['off'][1] + (oz[1] - it['off'][1]) * b
+            x, y = px + ox, py + oy + (1 - ce) * 12
             x = min(max(x, SAFE[0] * W), SAFE[2] * W - c['w']); y = min(max(y, SAFE[1] * H), 0.605 * H - c['h'])
             ax, ay = min(max(px, x), x + c['w']), min(max(py, y), y + c['h'])
             _blend(img, lambda L: cv2.line(L, (int(px), int(py)), (int(ax), int(ay)), GOLD_HI, 2, cv2.LINE_AA), 0.8 * ce)
@@ -355,7 +421,7 @@ def main():
     for spec in maps:
         m = Map(spec, cache); save_json(cp, cache); m.table()
         if a.check: continue
-        m.layout(); m.canvas(); m.sprites(); m.place()
+        m.layout(); m.durs(); m.canvas(); m.sprites(); m.place(); m.camera()
         if a.frames:
             qc = os.path.join(a.da, 'qc'); os.makedirs(qc, exist_ok=True)
             for tv in [float(x) for x in a.frames.split(',')]:
@@ -366,6 +432,10 @@ def main():
         wr = Writer(out, W, H, FPS, crf=16, preset='medium'); n = int(round(m.d * FPS))
         for i in range(n): wr.write(np.ascontiguousarray(m.frame(i / FPS)))
         wr.close(); register(a.da, m.id, out, m.d)
+        ev = [{'kind': 'route', 't': round(it['rel'] - 0.12, 3), 'd': round(it['dur'], 3)} for it in m.items] + \
+             [{'kind': 'pop', 't': round(it['rel'] - 0.12 + it['dur'] + 0.02, 3)} for it in m.items]
+        if m.items: ev.append({'kind': 'out', 't': round(m.t_over - 0.1, 3)})
+        save_json(os.path.join(od, f'{m.id}_sfx.json'), {'events': ev})   # mix tự thêm tiếng kết nối
         print(f'  ✓ {out} · {m.d:.1f}s → edit.json: {{"t": {m.t0}, "d": {m.d}, "src": "{m.id}", "move": "none"}}')
     if a.check: print('\n→ Báo anh bảng trên (vị trí + khoảng cách) để xác nhận trước khi dựng.')
 

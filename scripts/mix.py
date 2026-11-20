@@ -39,6 +39,25 @@ def synth(kind, path):
         n = int(SR * 1.2); t = np.arange(n) / SR
         out = np.sin(2 * np.pi * (55 + 40 * np.exp(-t * 8)) * t) * np.exp(-t * 3.2) * 0.9
         out += rng.normal(0, 1, n) * np.exp(-t * 40) * 0.25
+    elif kind == 'route':                         # vệt đường chạy: tiếng gió mảnh quét lên, sáng dần
+        n = int(SR * 1.1); t = np.arange(n) / SR; x = rng.normal(0, 1, n); out = np.zeros(n); y = 0.0; y2 = 0.0
+        for i in range(n):
+            f = 0.03 + 0.22 * (t[i] / 1.1) ** 1.3
+            y += f * (x[i] - y); y2 += 0.5 * (y - y2); out[i] = y - y2
+        out *= np.sin(np.pi * np.clip(t / 1.1, 0, 1)) ** 1.5 * 3.2
+        out += np.sin(2 * np.pi * (520 + 380 * t / 1.1) * t) * 0.05 * np.sin(np.pi * t / 1.1) ** 2
+    elif kind == 'pop':                           # thẻ km bật ra: tiếng "ting" mềm
+        n = int(SR * 0.9); t = np.arange(n) / SR; out = np.zeros(n)
+        for f, a_ in ((1568, 0.5), (2349, 0.28), (3136, 0.12)):
+            out += a_ * np.sin(2 * np.pi * f * t) * np.exp(-t * 6.5)
+        out += np.sin(2 * np.pi * 180 * t) * np.exp(-t * 30) * 0.35
+        out *= np.minimum(1, t / 0.004) * 0.55
+    elif kind == 'out':                           # camera lùi ra toàn cảnh
+        n = int(SR * 0.9); t = np.arange(n) / SR; x = rng.normal(0, 1, n); out = np.zeros(n); y = 0.0
+        for i in range(n):
+            f = 0.2 - 0.17 * t[i] / 0.9
+            y += f * (x[i] - y); out[i] = y
+        out *= np.sin(np.pi * t / 0.9) ** 2 * 1.4
     else:  # shimmer
         n = int(SR * 1.0); t = np.arange(n) / SR; out = np.zeros(n)
         for f in (2637, 3136, 3951, 4699):
@@ -58,7 +77,7 @@ def main():
     voice = cfg.get('voice', os.path.join(a.da, 'cut.mp4'))
     sfxd = os.path.join(a.da, 'sfx_synth'); os.makedirs(sfxd, exist_ok=True)
     lib = dict(cfg.get('sfx_lib', {}))
-    for k in ('whoosh', 'hit', 'shimmer'):
+    for k in ('whoosh', 'hit', 'shimmer', 'route', 'pop', 'out'):
         if not lib.get(k) or not os.path.exists(lib[k]):
             p = os.path.join(sfxd, k + '.wav')
             if not os.path.exists(p): synth(k, p)
@@ -72,13 +91,26 @@ def main():
         o = A.get('offer')
         if o: ev.append(('shimmer', o['t0'] + 0.35, -14))
         if A.get('end'): ev.append(('hit', A['end']['t'] + 0.2, -9))
-    for e in cfg.get('sfx', []):
-        ev.append((e['file'], e['t'], e.get('db', -12)))
     ev.sort(key=lambda e: e[1])
-    keep, last = [], -9                       # thưa: ≥ 2.5 s giữa 2 SFX (trừ hit)
+    keep, last = [], -9                       # thưa: ≥ 2.5 s giữa 2 SFX tự động (trừ hit)
     for e in ev:
         if e[0] == 'hit' or e[1] - last >= 2.5:
             keep.append(e); last = e[1]
+    # tiếng kết nối của bản đồ (mốc do mapfx ghi) — giữ hết, không lọc thưa
+    E = load_json(os.path.join(a.da, 'edit.json'), {})
+    if cfg.get('map_sfx', True):
+        lv = {'route': -15, 'pop': -13, 'out': -17}
+        for b in E.get('broll', []):
+            src = str(b.get('src', ''))
+            mp = os.path.join(a.da, 'broll_916', os.path.splitext(os.path.basename(src))[0] + '_sfx.json')
+            if not os.path.exists(mp): continue
+            for e in load_json(mp, {}).get('events', []):
+                tt = b['t'] + e['t'] - b.get('in', 0)
+                if b['t'] - 0.05 <= tt <= b['t'] + b['d']:
+                    keep.append((e['kind'], tt + (peak_time(lib[e['kind']]) * 0.6 if e['kind'] == 'route' else 0), lv[e['kind']]))
+    for e in cfg.get('sfx', []):               # danh sách tay: giữ hết
+        keep.append((e['file'], e['t'], e.get('db', -12)))
+    keep.sort(key=lambda e: e[1])
     inputs = ['-i', vid, '-i', voice]
     fc = ['[1:a]highpass=f=80,acompressor=threshold=-20dB:ratio=3:attack=5:release=120:makeup=2,'
           'equalizer=f=3000:t=q:w=1.2:g=2,aresample=48000,apad' + (',asplit=2[vo][vsc]' if cfg.get('music') else '[vo]')]

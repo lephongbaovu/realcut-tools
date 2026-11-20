@@ -257,11 +257,14 @@ class FX:
 
     def darkness(self, img, t):
         """làm tối CẢ KHUNG khi chữ hiện trên nền sáng; liền mạch nếu các chữ nối nhau."""
-        d = 0.0
+        d = 0.0; dk = self.A.get('darken', 0.52)
         for k in self.kw:
-            if k.get('pos') == 'auto' and k['t0'] <= t <= k['t1'] + 0.35:
-                if self.kw_mode(img, k) == 'bright':
-                    d = max(d, ease((t - k['t0']) / 0.28) * clamp((k['t1'] + 0.32 - t) / 0.32))
+            if not (k['t0'] <= t <= k['t1'] + 0.35): continue
+            env_ = ease((t - k['t0']) / 0.28) * clamp((k['t1'] + 0.32 - t) / 0.32)
+            if k.get('pos') == 'auto' and self.kw_mode(img, k) == 'bright':
+                d = max(d, env_)
+            elif k.get('dim'):                      # "dim": 0.3 → tối nhẹ cả khung khi chữ nằm trên trời sáng
+                d = max(d, env_ * float(k['dim']) / dk)
         q = self.A.get('quote')
         if q and q.get('darken', True) and q['t0'] <= t <= q['t1'] + 0.35:
             d = max(d, ease((t - q['t0']) / 0.28) * clamp((q['t1'] + 0.32 - t) / 0.32))
@@ -309,9 +312,11 @@ class FX:
                 else:
                     by = H * k.get('y', 0.630); sy = by
             gline(img, main, 'serif_black', sz, W / 2, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
-            if sub:
+            if sub:                                 # dòng phụ: mặc định màu kem (chỉ chữ lớn mới vàng nhũ)
                 kk = ease((t - t0 - 0.15) / 0.25) * ko
-                gline(img, sub, 'serif_xbi', ssz, W / 2, sy + (1 - kk) * 6, kk)
+                sc = k.get('sub_color', self.A.get('sub_color', 'cream'))
+                if sc == 'gold': gline(img, sub, 'serif_xbi', ssz, W / 2, sy + (1 - kk) * 6, kk)
+                else: cline(img, sub, 'serif_xbi', ssz * 0.92, W / 2, sy + (1 - kk) * 6, kk, color=sc, tracking=0.01, shadow=0.75)
             return
 
     # —— 4 · câu trích (2 tầng: kem + vàng nhũ nghiêng) ——

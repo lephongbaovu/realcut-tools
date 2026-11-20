@@ -60,6 +60,7 @@ Mục nào không cần thì bỏ hẳn khoá đó.
  //  pos  top  = trên đầu người nói — TỰ đặt ngay trên đỉnh đầu (head.json) và tự thu nhỏ nếu chạm mép trên
  //       low  = dải dưới vùng an toàn (0.56–0.65 H) — dùng trên B-roll / dải mờ blur-fit
  //       auto = tự nhận nền: sáng → chữ lên 0.42 H + làm tối cả khung; tối → như low
+ //  dim: 0.28 = tối nhẹ cả khung khi chữ "top" nằm trên trời sáng · sub_color (từng mục hoặc khoá gốc "sub_color") = màu dòng phụ, mặc định "cream" — chỉ chữ lớn mới vàng nhũ ("gold" để dòng phụ cũng vàng)
  //  big: true = tên dự án cực to (≤ 215 px) · layout "stack3" = 3 dòng: main / & / sub cùng cỡ
  //  ghi đè tuỳ chọn: size, sub_size, y (baseline dòng chính, tỉ lệ H), y_sub
 
@@ -119,6 +120,7 @@ Dùng khi lời anh nói vị trí / khoảng cách tới tiện ích. Dựng th
   ],
   "dist": "road",                                // road = đường bộ OSRM (mặc định) | line = chim bay (ghi rõ trên hình)
   "show_min": false,                             // true = thêm "≈ N phút" (thời gian OSRM tính cho ô tô — chỉ bật khi anh muốn)
+  "zoom": 3.0,                                   // camera zoom gần lô đất, bám đầu tuyến đường đang chạy, cuối lùi ra toàn cảnh
   "rings": [1, 3],                               // tuỳ chọn: vòng bán kính km quanh BĐS
   "note": null                                   // dòng nguồn dưới đáy; null = tự ghi (Bing · OSM)
 }]}
@@ -127,4 +129,5 @@ Dùng khi lời anh nói vị trí / khoảng cách tới tiện ích. Dựng th
 - **Luôn chạy `map DA --check` trước**, đưa anh bảng vị trí + km để xác nhận (tra tên OSM hay ra nhầm nơi; km tính lệch km anh ghi > 25 % → script cảnh báo). Anh sửa → điền `at`/`km`.
 - `map DA --frames 21,26` xem ảnh thử → `map DA` dựng → thêm vào edit.json `{"t": 20.0, "d": 8.0, "src": "MAP1", "move": "none"}`. Chạy `map` **sau** `broll` (broll ghi lại index.json).
 - Thẻ tự né nhau, nằm trong vùng an toàn; trong lúc bản đồ hiện, không đặt keyword/thẻ của ads.json đè lên (chỉ watermark).
+- `map` ghi `broll_916/<id>_sfx.json` → `mix` tự thêm tiếng vệt đường chạy + "ting" khi thẻ km bật + tiếng lùi toàn cảnh (tắt: `audio.map_sfx: false`). Thẻ BĐS ẩn khi camera zoom theo tuyến, hiện lại ở toàn cảnh.
 - Mỗi tiện ích ~1.3–1.5 s là đọc kịp; nhiều hơn 5–6 tiện ích → tách 2 bản đồ.
