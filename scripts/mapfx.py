@@ -201,9 +201,20 @@ class Map:
         hx, hy = self.hf; ph = self.pin['h']
         if self.hname:
             w = max(self.hname['w'], self.hsub['w'] if self.hsub else 0) + 56; h = self.hname['h'] + (self.hsub['h'] + 6 if self.hsub else 0) + 30
-            y = hy - ph - 16 - h
-            if y < sy0 + (60 if self.title else 0): y = hy + 22
-            x = min(max(hx - w / 2, sx0), sx1 - w); self.hrect = (x, y, w, h); taken.append(self.hrect)
+            top0 = sy0 + (60 if self.title else 0); bot0 = 0.605 * H
+            cl = lambda x, y: (min(max(x, sx0), sx1 - w), min(max(y, top0), bot0 - h), w, h)
+            cands = {'above': cl(hx - w / 2, hy - ph - 16 - h), 'below': cl(hx - w / 2, hy + 22),
+                     'left': cl(hx - w - ph / 2 - 20, hy - h / 2), 'right': cl(hx + ph / 2 + 20, hy - h / 2),
+                     'above_far': cl(hx - w / 2, hy - ph - 16 - h - 1.6 * h), 'below_far': cl(hx - w / 2, hy + 22 + 1.6 * h)}
+            rpts = [q for it in self.items for q in it['rf']]; ipts = [it['pf'] for it in self.items]
+            def hit(r, pts, m=0): return sum(1 for qx, qy in pts if r[0] - m <= qx <= r[0] + r[2] + m and r[1] - m <= qy <= r[1] + r[3] + m)
+            def score(k):
+                r = cands[k]
+                return (hit(r, rpts, 10) + 40 * hit(r, ipts, 60) + 200 * hit(r, [(hx, hy)], 4) + 200 * hit(r, [(hx, hy - ph / 2)])
+                        + (0 if k == 'above' else 3) + (6 if k.endswith('far') else 0))
+            want = self.s['home'].get('card', 'auto')
+            k = want if want in cands else min(cands, key=score)
+            self.hrect = cands[k]; taken.append(self.hrect)
         taken.append((hx - ph / 2, hy - ph, ph, ph))
         for it in self.items:
             px, py = it['pf']; taken.append((px - 16, py - 16, 32, 32))

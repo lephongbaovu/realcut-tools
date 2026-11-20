@@ -81,7 +81,7 @@ def main():
             keep.append(e); last = e[1]
     inputs = ['-i', vid, '-i', voice]
     fc = ['[1:a]highpass=f=80,acompressor=threshold=-20dB:ratio=3:attack=5:release=120:makeup=2,'
-          'equalizer=f=3000:t=q:w=1.2:g=2,aresample=48000,apad,asplit=2[vo][vsc]']
+          'equalizer=f=3000:t=q:w=1.2:g=2,aresample=48000,apad' + (',asplit=2[vo][vsc]' if cfg.get('music') else '[vo]')]
     mix = ['[vo]']
     if cfg.get('music'):
         mi = cfg.get('music_in', 0.0)
