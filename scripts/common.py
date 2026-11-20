@@ -43,6 +43,8 @@ FONT_FILES = {
     'barlow':       'BarlowCondensed-ExtraBold.ttf',# chữ nhấn: cao gọn, nhiều chữ vẫn vừa khung
     'josefin':      'JosefinSans-Bold.ttf',         # chữ nhấn: hình học thanh lịch
     'lpv':          'LPVDisplay-ExtraBold.ttf',     # FONT RIÊNG anh Vũ: Be Vietnam Pro hẹp 90 % + nghiêng 7° (bản thử)
+    'lpv_black':    'LPVDisplay-Black.ttf',         # LPV dày (+): nền Be Vietnam Pro Black
+    'lpv_heavy':    'LPVDisplay-Heavy.ttf',         # LPV dày hơn (++): Black + làm đậm nét thêm
     'robotoslab':   'RobotoSlab-Black.ttf',         # chữ nhấn có chân vuông, chắc chắn
     'merriweather': 'Merriweather-Black.ttf',       # chữ nhấn có chân, kiểu báo chí uy tín
     'unbounded':    'Unbounded-Black.ttf',          # chữ nhấn rất rộng, hiện đại (câu dài dễ tràn)
