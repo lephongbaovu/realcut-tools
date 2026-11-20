@@ -410,23 +410,22 @@ class FX:
         if op <= 0: return
         num = G(hc['number'], hc.get('font', 'black'), hc.get('size', 104))
         lab = S(hc.get('label', 'HOTLINE').upper(), 'semibold', hc.get('label_size', 36), 'white', 0.38, 0.5)
-        pw = max(num['w'], lab['w']) + 110; ph = lab['h'] + num['h'] + 64
+        pad = hc.get('pad', 110 if hc.get('size', 104) > 70 else 56); pw = max(num['w'], lab['w']) + pad; ph = lab['h'] + num['h'] + pad * 0.55
         if 'y' in hc: y0 = H * hc['y']
         else:
             ht = self.head_top(hc['t0'], hc['t1']); y0 = (H * 0.30 if ht is None else ht - 40) - ph
             y0 = max(H * SAFE[1], y0)
-        y0 += (1 - k) * 16; x0 = W / 2 - pw / 2
-        T.glass(img, x0, y0, pw, ph, tint=(30, 24, 19), alpha=0.58, opacity=op, radius=30)
+        y0 += (1 - k) * 16; cx = W * hc.get('x', 0.5); x0 = min(max(cx - pw / 2, W * SAFE[0]), W * SAFE[2] - pw); cx = x0 + pw / 2
+        T.glass(img, x0, y0, pw, ph, tint=(30, 24, 19), alpha=0.58, opacity=op, radius=int(min(30, ph * 0.22)))
         rm = np.zeros((int(ph), int(pw)), np.uint8)
         cv2.rectangle(rm, (2, 2), (int(pw) - 3, int(ph) - 3), 255, 2, cv2.LINE_AA)
         g = T.gradient(int(ph), int(pw), PALETTE['gold_hi'], PALETTE['gold'], PALETTE['gold_lo'])
         T.over(img, dict(rgb=g, a=rm.astype(np.float32) / 255 * 0.9, base=0, w=int(pw), h=int(ph), xoff=0), x0, y0, op)
-        T.over(img, lab, W / 2 - lab['w'] / 2 - lab['xoff'], y0 + 26, op)
-        T.hline(img, W / 2 - 40, y0 + 26 + lab['h'] + 10, 80, 2, 'gold', op)
-        T.over(img, num, W / 2 - num['w'] / 2, y0 + 40 + lab['h'] + num['h'] * 0.80 - num['base'], op, ) if False else \
-            T.over(img, num, W / 2 - num['w'] / 2, y0 + lab['h'] + 44, op)
+        gy = pad * 0.22; T.over(img, lab, cx - lab['w'] / 2 - lab['xoff'], y0 + gy, op)
+        T.hline(img, cx - 28, y0 + gy + lab['h'] + 6, 56, 2, 'gold', op)
+        ny = y0 + gy + lab['h'] + 14; T.over(img, num, cx - num['w'] / 2, ny, op)
         ks = (t - hc['t0'] - 0.35) / 0.7
-        if 0 <= ks <= 1: T.over(img, shimmer(num, ks), W / 2 - num['w'] / 2, y0 + lab['h'] + 44, 0.8 * op)
+        if 0 <= ks <= 1: T.over(img, shimmer(num, ks), cx - num['w'] / 2, ny, 0.8 * op)
 
     # —— 4 · câu trích (2 tầng: kem + vàng nhũ nghiêng) ——
     def quote(self, img, t):
