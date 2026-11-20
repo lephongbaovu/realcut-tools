@@ -94,12 +94,13 @@ def main():
     # sự kiện SFX: tự động theo cấu trúc + danh sách tay
     ev = []
     if cfg.get('sfx_auto', True):
-        for t, _ in A.get('transitions', []): ev.append(('whoosh', t, -14))
+        sd = {'whoosh': -14, 'hit': -6, 'shimmer': -14, 'end_hit': -9}; sd.update(cfg.get('sfx_db', {}))   # chỉnh mức SFX tự động
+        for t, _ in A.get('transitions', []): ev.append(('whoosh', t, sd['whoosh']))
         h = A.get('hook')
-        if h: ev.append(('hit', h['price_t'], -6))
+        if h: ev.append(('hit', h['price_t'], sd['hit']))
         o = A.get('offer')
-        if o: ev.append(('shimmer', o['t0'] + 0.35, -14))
-        if A.get('end'): ev.append(('hit', A['end']['t'] + 0.2, -9))
+        if o: ev.append(('shimmer', o['t0'] + 0.35, sd['shimmer']))
+        if A.get('end'): ev.append(('hit', A['end']['t'] + 0.2, sd['end_hit']))
     ev.sort(key=lambda e: e[1])
     keep, last = [], -9                       # thưa: ≥ 2.5 s giữa 2 SFX tự động (trừ hit)
     for e in ev:
@@ -115,7 +116,7 @@ def main():
     for pl in A.get('plot', []):                # đồ hoạ lô đất: tiếng chạy viền khi ranh được vẽ
         keep.append((ranh(pl.get('draw', 0.8)), pl['t0'], rdb))
     if cfg.get('map_sfx', True):
-        lv = {'out': -19}
+        lv = {'out': cfg.get('sfx_db', {}).get('out', -19)}
         for b in E.get('broll', []):
             src = str(b.get('src', ''))
             mp = os.path.join(a.da, 'broll_916', os.path.splitext(os.path.basename(src))[0] + '_sfx.json')
