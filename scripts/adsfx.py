@@ -183,7 +183,7 @@ class FX:
         h = self.A.get('hook')
         if not h: return
         out = h['out']
-        warm_dim(img, 0.0, 0.48, h.get('dim', 0.62) * T.env(t, 0.0, out + 0.27, 0.32, 0.32))   # "dim": 0 = mở đầu sáng
+        warm_dim(img, 0.0, 0.48, h.get('dim', 0.0) * T.env(t, 0.0, out + 0.27, 0.32, 0.32))   # "dim": 0 = mở đầu sáng
         p0 = h['price_t']
         out_k = 1 - eio((t - (p0 - 0.29)) / 0.29)   # các giá so sánh rời đi ngay trước khi giá chính hiện
         for txt, t0, ts, y in h.get('strike', []):

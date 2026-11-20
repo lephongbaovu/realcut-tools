@@ -38,7 +38,7 @@ FONT_FILES = {
     'montserrat':   'Montserrat-Black.ttf',     # chữ nhấn sans đậm, số rõ (OFL)
     'anton':        'Anton-Regular.ttf',        # chữ nhấn cao, đậm, gọn (OFL)
     'oswald':       'Oswald-Bold.ttf',          # chữ nhấn cao vừa, cứng cáp (OFL)
-    'display':      'PlayfairDisplay_900Black.ttf',   # = font chữ lớn/điểm nhấn; ads.json "display_font" đổi được      # chữ hoa kiểu doanh nhân (Cinzel, OFL) — chỉ chữ không dấu
+    'display':      'Montserrat-Black.ttf',     # = font chữ lớn/điểm nhấn (mặc định anh Vũ chọn); ads.json "display_font" đổi được
 }
 
 def set_display_font(key):

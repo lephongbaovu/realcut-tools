@@ -108,7 +108,7 @@ def main():
     # sự kiện SFX: tự động theo cấu trúc + danh sách tay
     ev = []
     if cfg.get('sfx_auto', True):
-        sd = {'whoosh': -14, 'hit': -6, 'shimmer': -14, 'end_hit': -9}; sd.update(cfg.get('sfx_db', {}))   # chỉnh mức SFX tự động
+        sd = {'whoosh': -24, 'hit': -17, 'shimmer': -20, 'end_hit': -17}; sd.update(cfg.get('sfx_db', {}))   # chỉnh mức SFX tự động
         for t, _ in A.get('transitions', []): ev.append(('whoosh', t, sd['whoosh']))
         h = A.get('hook')
         if h and not h.get('count'): ev.append(('hit', h['price_t'], sd['hit']))
@@ -126,7 +126,7 @@ def main():
         pth = os.path.join(sfxd, f'ranh_{d:.2f}.wav')
         if not os.path.exists(pth): synth_ranh(pth, d)
         return pth
-    rdb = cfg.get('ranh_db', -20)
+    rdb = cfg.get('ranh_db', -26)
     hk = A.get('hook')
     if hk and hk.get('count') and cfg.get('sfx_auto', True):    # giá chạy số: tiếng đếm + chốt chuông (thay tiếng hit)
         cp_ = os.path.join(sfxd, f"count_{float(hk['count']):.2f}.wav")
@@ -135,7 +135,7 @@ def main():
     for pl in A.get('plot', []):                # đồ hoạ lô đất: tiếng chạy viền khi ranh được vẽ
         keep.append((ranh(pl.get('draw', 0.8)), pl['t0'], rdb))
     if cfg.get('map_sfx', True):
-        lv = {'out': cfg.get('sfx_db', {}).get('out', -19)}
+        lv = {'out': cfg.get('sfx_db', {}).get('out', -27)}
         for b in E.get('broll', []):
             src = str(b.get('src', ''))
             mp = os.path.join(a.da, 'broll_916', os.path.splitext(os.path.basename(src))[0] + '_sfx.json')
@@ -157,7 +157,7 @@ def main():
         if 'drop' in cfg:                     # {"track": giây drop trong bài, "video": giây cần drop}
             mi = cfg['drop']['track'] - cfg['drop']['video']
         inputs += ['-ss', f'{max(0, mi):.3f}', '-i', cfg['music']]
-        g = cfg.get('music_gain', 0.5); endt = A.get('end', {}).get('t', dur)
+        g = cfg.get('music_gain', 0.2)                 # anh Vũ duyệt: nhạc chỉ làm nền dưới giọng; endt = A.get('end', {}).get('t', dur)
         vol = f"if(lt(t,{endt}),{g},{g}+0.30*min(1,(t-{endt})/0.8))"
         pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
         if pg and 'drop' in cfg:

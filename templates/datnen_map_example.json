@@ -1,0 +1,39 @@
+{
+ "_ghi_chu": "Ví dụ thật ĐẤT NỀN đã duyệt — bản đồ khoảng cách (km theo lời anh).",
+ "maps": [
+  {
+   "id": "MAP1",
+   "t": 21.0,
+   "d": 9.2,
+   "title": "Kết nối",
+   "home": {
+    "name": "",
+    "at": "12.683386, 108.162892",
+    "label": "Vị trí"
+   },
+   "items": [
+    {
+     "name": "Nút giao cao tốc Khánh Hòa – BMT",
+     "t": 22.2,
+     "at": "12.666016, 108.155370",
+     "km": 2
+    },
+    {
+     "name": "Vòng xoay Quốc lộ 26",
+     "t": 24.6,
+     "at": "12.700572, 108.165897",
+     "km": 2
+    },
+    {
+     "name": "Khách sạn Mường Thanh",
+     "t": 26.9,
+     "at": "12.692704, 108.063533",
+     "km": 11
+    }
+   ],
+   "dist": "road",
+   "show_min": false,
+   "zoom": 3.0
+  }
+ ]
+}
