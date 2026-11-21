@@ -336,6 +336,8 @@ class FX:
                     sy = H * k.get('y_sub', 0.642); by = H * k['y'] if 'y' in k else sy - sz * 0.56
                 else:
                     by = H * k.get('y', 0.630); sy = by
+            if k.get('pop'):                        # pop: chữ to lên rồi hạ về cỡ gốc khi xuất hiện (như chốt giá)
+                pp = clamp((t - t0) / k.get('pop_d', 0.4)); sz = sz * (1 + float(k['pop']) * np.sin(np.pi * pp))
             gline(img, main, 'display', sz, W / 2, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
             if sub:                                 # dòng phụ: mặc định màu kem (chỉ chữ lớn mới vàng nhũ)
                 kk = ease((t - t0 - 0.15) / 0.25) * ko
