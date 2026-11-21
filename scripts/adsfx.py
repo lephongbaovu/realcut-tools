@@ -42,15 +42,82 @@ def S(text, font, size, color='cream', tracking=0.0, shadow=0.0):
     return _sc[k]
 
 _gc = {}
+GOLD = {'style': 'glitter'}          # 'glitter' = vàng nhũ hạt · 'polished' = vàng kim loại bóng (ads.json "gold_style")
+_GSTOPS = [(-0.35, (255, 250, 228)), (0.0, (255, 238, 178)), (0.20, (240, 202, 112)), (0.44, (160, 106, 34)),
+           (0.55, (204, 146, 54)), (0.72, (252, 224, 146)), (0.88, (222, 168, 74)), (1.08, (122, 78, 22))]
+
+_GR_X = [0.0, 0.16, 0.36, 0.58, 0.78, 0.92, 1.0]
+_GR_C = [(48, 26, 6), (112, 66, 16), (178, 118, 34), (226, 172, 72), (248, 214, 128), (255, 238, 186), (255, 251, 232)]
+
+def _gold_ramp(I):
+    return np.stack([np.interp(I, _GR_X, [c[q] for c in _GR_C]) for q in range(3)], -1).astype(np.float32)
+
+def polished_gold(a, base_y, size):
+    """THỎI VÀNG ĐẶC KHẮC THÀNH CHỮ (anh Vũ 21/11): mặt chữ PHẲNG bóng như gương phản chiếu ánh đèn (loang sáng–tối),
+    mép VÁT CẠNH sắc bắt sáng trên-trái / tối dưới-phải. Độ dày khối vẽ riêng trong G (_gold_side)."""
+    h, w = a.shape
+    m = (a > 0.5).astype(np.uint8)
+    dt = cv2.distanceTransform(m, cv2.DIST_L2, 5).astype(np.float32)
+    bw = max(2.0, size * 0.032)                                  # bề rộng mép vát (hẹp, sắc)
+    bw = float(bw); size = float(size)
+    hgt = cv2.GaussianBlur(np.clip(dt / bw, 0, 1).astype(np.float32), (0, 0), 0.45)
+    gx = cv2.Sobel(hgt, cv2.CV_32F, 1, 0, ksize=3) / 8 * bw; gy = cv2.Sobel(hgt, cv2.CV_32F, 0, 1, ksize=3) / 8 * bw
+    nl = np.sqrt(gx ** 2 + gy ** 2 + 1); nx, ny, nz = -gx / nl, -gy / nl, 1 / nl
+    L = np.array((-0.55, -0.7, 0.45), np.float32); L /= np.linalg.norm(L)
+    dif = np.clip(nx * L[0] + ny * L[1] + nz * L[2], 0, 1)
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    cap = size * 0.74; u = xx / cap; v = (yy - (base_y - cap)) / cap
+    # mặt phẳng gương: phản chiếu "phòng chụp" — 2 mảng đèn lớn chéo + chân trời tối giữa thân chữ
+    refl = 0.55 + 0.30 * np.cos(2 * np.pi * (0.32 * u + 0.62 * v) - 0.6) + 0.18 * np.cos(2 * np.pi * (0.11 * u - 0.21 * v) + 1.3)
+    refl -= 0.32 * np.exp(-((v - 0.56) / 0.13) ** 2)            # dải tối "đường chân trời" phản chiếu
+    refl += 0.30 * np.exp(-((v - 0.14) / 0.12) ** 2)            # dải sáng gần đỉnh chữ
+    spot = 0.72 + 0.28 * np.exp(-(((xx - w * 0.28) / (w * 0.6)) ** 2 + ((v + 0.1) / 0.9) ** 2))
+    face = np.clip(refl * spot, 0, 1)
+    face = 0.5 + 0.5 * np.tanh((face - 0.5) * 3.2)               # gương: chuyển sáng–tối gắt như kim loại đánh bóng
+    bev = np.clip(dif * 1.25 - 0.18, 0, 1) ** 1.4
+    onb = (np.clip(1 - hgt, 0, 1) > 0.02).astype(np.float32) * np.clip((1 - hgt) * 3, 0, 1)                         # 1 ở mép vát, 0 trên mặt phẳng
+    I = face * (1 - onb) + bev * onb
+    I = np.clip(I * 0.82 + GOLD.get('lift', 0.16), 0, 1)          # độ sáng chung (anh Vũ: sáng lên 1 tý)
+    g = _gold_ramp(I)
+    sp = np.clip(nx * -0.6 + ny * -0.8, 0, 1) * onb               # loá dọc mép vát hướng đèn
+    g += (sp ** 3 * 170)[..., None] * np.array((1.0, 0.96, 0.82), np.float32)
+    g += (np.exp(-(((xx - w * 0.26) / (w * 0.09)) ** 2 + ((v - 0.18) / 0.10) ** 2)) * 60 * (1 - onb))[..., None]   # điểm loá trên mặt
+    return np.clip(g, 0, 255)
+
+def _gold_side(a, size):
+    """độ dày thỏi vàng: đùn khối xuống-phải, mặt hông tối đồng, sáng dần về mép trước"""
+    D = max(2, int(size * 0.07)); h, w = a.shape
+    acc = np.zeros_like(a); col = np.zeros((h, w, 3), np.float32)
+    for d in range(D, 0, -1):
+        M = np.float32([[1, 0, d * 0.55], [0, 1, d]])
+        sh = cv2.warpAffine(a, M, (w, h))
+        k = 1 - d / D                                            # 0 ở đáy khối → 1 sát mặt chữ
+        c = _gold_ramp(np.full((1, 1), 0.06 + 0.26 * k ** 2, np.float32))[0, 0]
+        new = sh * (1 - acc); acc = acc + new; col += new[..., None] * c
+    return acc, col / np.maximum(acc, 1e-4)[..., None]
+
 def G(text, font, size, pad=8):
     """chữ VÀNG NHŨ: gradient vàng + hạt nhũ lấp lánh (đổi pha 5 lần/s) + bóng mềm rất nhẹ — không viền."""
-    ph = int(CUR['t'] * 5) % 3
-    key = (text, font, int(size), ph)
+    ph = int(CUR['t'] * 5) % 3 if GOLD['style'] != 'polished' else 0
+    key = (text, font, int(size), ph, GOLD['style'])
     if key in _gc: return _gc[key]
     base = T.sprite(T.nfc(text), font, size, 'cream', tracking=0.03)
     h, w = base['h'] + 2 * pad, base['w'] + 2 * pad
     a = np.zeros((h, w), np.float32); a[pad:pad + base['h'], pad:pad + base['w']] = base['a']
     sh = np.roll(cv2.GaussianBlur(a, (0, 0), max(2, size * 0.05)), int(size * 0.03) + 1, axis=0)
+    if GOLD['style'] == 'polished':             # thỏi vàng đặc khắc thành chữ (anh Vũ 21/11): mặt gương + vát cạnh + độ dày khối
+        P = max(pad, int(size * 0.12)); h, w = base['h'] + 2 * P, base['w'] + 2 * P
+        a = np.zeros((h, w), np.float32); a[P:P + base['h'], P:P + base['w']] = base['a']
+        g = polished_gold(a, base['base'] + P, size)
+        sa, sc = _gold_side(a, size)
+        sh = cv2.GaussianBlur(np.maximum(a, sa), (0, 0), max(2, size * 0.05))
+        sh = np.roll(np.roll(sh, int(size * 0.05) + 1, axis=0), int(size * 0.03), axis=1)
+        side = sa * (1 - a)
+        col = np.array((20, 12, 4), np.float32)[None, None, :] * (1 - a[..., None] - side[..., None]) + sc * side[..., None] + g * a[..., None]
+        sp = dict(rgb=col, a=np.clip(np.maximum(np.maximum(a, sa), sh * 0.45), 0, 1), fill=a, base=base['base'] + P, w=w, h=h,
+                  xoff=base.get('xoff', 0) - P)
+        if len(_gc) > 600: _gc.clear()
+        _gc[key] = sp; return sp
     g = T.glitter_gold(h, w, seed=len(text) * 13 + int(size), tw=ph * 0.7)
     col = np.array((60, 40, 20), np.float32)[None, None, :] * (1 - a[..., None]) + g * a[..., None]
     sp = dict(rgb=col, a=np.clip(np.maximum(a, sh * 0.16), 0, 1), fill=a, base=base['base'] + pad, w=w, h=h,
@@ -146,6 +213,7 @@ class FX:
         self.A = load_json(os.path.join(da, 'ads.json'))
         if self.A is None: die('Chưa có DA/ads.json (xem reference/schema.md + templates/ads_example.json)')
         set_display_font(self.A.get('display_font'))
+        GOLD['style'] = self.A.get('gold_style', 'glitter')
         E = load_json(os.path.join(da, 'edit.json'), {})
         self.broll = [(b['t'], b['t'] + b['d']) for b in E.get('broll', [])]
         hj = load_json(os.path.join(da, 'head.json'))
@@ -330,21 +398,95 @@ class FX:
                 ssz = fit(sub, 'serif_xbi', k.get('sub_size', 60), W * 0.80) if sub else 0
                 by = H * k.get('y', 0.420); sy = by + 70
             else:                                   # low: dải dưới vùng an toàn
-                sz = fit(main, 'display', k.get('size', 140), W * 0.84)
+                sz = fit(main, 'display', k.get('size', 140), W * k.get('max_w', self.A.get('kw_max_w', 0.84)))
                 ssz = fit(sub, 'serif_xbi', k.get('sub_size', 64), W * 0.80) if sub else 0
-                if sub:
+                if sub and 'y' in k and 'y_sub' not in k:      # baseline chữ lớn cố định, dòng phụ ngay dưới
+                    by = H * k['y']; sy = by + ssz * 1.15
+                elif sub:
                     sy = H * k.get('y_sub', 0.642); by = H * k['y'] if 'y' in k else sy - sz * 0.56
                 else:
                     by = H * k.get('y', 0.630); sy = by
+            scr = k.get('scrim', self.A.get('kw_scrim', 0))
+            if scr:                                 # dải tối rất mềm sau chữ (không viền, không ô) — chỉ để đọc được trên nền sáng
+                cy = by - sz * 0.25 + (ssz * 0.5 if sub else 0); hh = sz * 1.5 + (ssz if sub else 0)
+                a0, a1 = int(max(0, cy - hh)), int(min(H, cy + hh))
+                if a1 > a0:
+                    yy = (np.arange(a0, a1, dtype=np.float32) - cy) / (hh * 0.55)
+                    gm = (np.exp(-yy ** 2) * scr * op)[:, None, None]
+                    roi = img[a0:a1].astype(np.float32); roi *= (1 - gm); img[a0:a1] = roi.clip(0, 255).astype(np.uint8)
             if k.get('pop'):                        # pop: chữ to lên rồi hạ về cỡ gốc khi xuất hiện (như chốt giá)
                 pp = clamp((t - t0) / k.get('pop_d', 0.4)); sz = sz * (1 + float(k['pop']) * np.sin(np.pi * pp))
             gline(img, main, 'display', sz, W / 2, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
             if sub:                                 # dòng phụ: mặc định màu kem (chỉ chữ lớn mới vàng nhũ)
                 kk = ease((t - t0 - 0.15) / 0.25) * ko
                 sc = k.get('sub_color', self.A.get('sub_color', 'cream'))
-                if sc == 'gold': gline(img, sub, 'serif_xbi', ssz, W / 2, sy + (1 - kk) * 6, kk)
-                else: cline(img, sub, 'serif_xbi', ssz * 0.92, W / 2, sy + (1 - kk) * 6, kk, color=sc, tracking=0.01, shadow=0.75)
+                SO = lambda key, d: k.get(key, self.A.get(key, d))
+                sf = SO('sub_font', 'serif_xbi'); stx = sub.upper() if SO('sub_upper', False) else sub
+                ssz2 = ssz * SO('sub_scale', 1.0)
+                if sf != 'serif_xbi': ssz2 = fit(stx, sf, ssz2, W * 0.78)
+                yy_ = sy + (1 - kk) * 6 + SO('sub_dy', 0) * ssz
+                if sc == 'gold': gline(img, stx, sf, ssz2, W / 2, yy_, kk)
+                else:
+                    trk = SO('sub_tracking', 0.01); trail = ssz2 * 0.92 * trk     # khoảng giãn sau chữ cuối → bù để căn giữa đúng
+                    sp_ = cline(img, stx, sf, ssz2 * 0.92, W / 2 + trail / 2, yy_, kk, color=sc, tracking=trk, shadow=0.75)
+                    rl = SO('sub_rule', 0)              # 2 vạch vàng mảnh hai bên dòng phụ
+                    if rl and sp_ is not None:
+                        cols_ = np.where(sp_['a'].max(0) > 0.1)[0]          # mép chữ thật (bỏ phần đệm/giãn)
+                        x0_ = W / 2 + trail / 2 - sp_['w'] / 2 - sp_['xoff']
+                        L_, R_ = x0_ + cols_[0], x0_ + cols_[-1]; lw = W * rl * kk; ym = yy_ - ssz2 * 0.30
+                        T.hline(img, L_ - 22 - lw, ym, lw, 2, 'gold', kk)
+                        T.hline(img, R_ + 22, ym, lw, 2, 'gold', kk)
             if not k.get('stack'): return       # stack: true = xếp chồng nhiều từ khoá cùng lúc (mỗi dòng y riêng), vd liệt kê nhấn mạnh
+
+    # —— 3a · PHỤ ĐỀ KIỂU VUCUT (anh Vũ 21/11): cả câu theo lời, chữ thường nhỏ + từ khoá to vàng cùng dòng, hiện từng chữ ——
+    def subs(self, img, t):
+        SB = self.A.get('subs')
+        if not SB: return
+        for cl in SB['clusters']:
+            t0, t1 = cl['t0'], cl['t1']
+            if not (t0 - 0.02 <= t <= t1): continue
+            ko = clamp((t1 - t) / 0.14)
+            fs, gs = SB.get('size', 44), SB.get('gold_size', 96); col = tuple(SB.get('color', (222, 226, 232)))
+            gap = SB.get('gap', 0.30) * fs; maxw = W * SB.get('max_w', 0.80)
+            toks = []
+            for txt, ts, kind in cl['parts']:
+                if kind == 'g': sp = G(txt.upper(), 'display', gs)
+                else: sp = S(txt, SB.get('font', 'semibold'), fs, col, SB.get('tracking', 0.0), 0.8)
+                cs = np.where(sp['a'].max(0) > 0.08)[0]
+                l, r = (cs[0], cs[-1] + 1) if len(cs) else (0, sp['w'])
+                toks.append((sp, ts, kind, l, r))
+            lines, cur, cw = [], [], 0
+            for tk in toks:
+                w_ = tk[4] - tk[3]
+                if cur and cw + gap + w_ > maxw: lines.append(cur); cur, cw = [], 0
+                cw += (gap if cur else 0) + w_; cur.append(tk)
+            if cur: lines.append(cur)
+            asc = lambda ln: max((fs * 0.80 if k != 'g' else gs * 0.92) for _, _, k, _, _ in ln)   # chữ vàng có dấu + khối dày
+            dsc = lambda ln: max((fs * 0.28 if k != 'g' else gs * 0.22) for _, _, k, _, _ in ln)
+            rg = SB.get('row_gap', 0.16) * fs
+            base = H * SB.get('y', 0.632); bases = []
+            for ln in reversed(lines):
+                bases.append(base); base -= dsc(ln) + rg + asc(ln)
+            bases.reverse()
+            scr = SB.get('scrim', self.A.get('kw_scrim', 0))
+            if scr:
+                top_ = bases[0] - asc(lines[0]); bot_ = bases[-1] + dsc(lines[-1]); cy = (top_ + bot_) / 2; hh = (bot_ - top_) * 0.5 + fs * 1.6
+                a0, a1 = int(max(0, cy - hh * 1.6)), int(min(H, cy + hh * 1.6))
+                yy = (np.arange(a0, a1, dtype=np.float32) - cy) / hh
+                gm = (np.exp(-yy ** 2) * scr * ko * clamp((t - t0) / 0.2))[:, None, None]
+                roi = img[a0:a1].astype(np.float32); roi *= (1 - gm); img[a0:a1] = roi.clip(0, 255).astype(np.uint8)
+            for ln, b in zip(lines, bases):
+                lw = sum(r - l for _, _, _, l, r in ln) + gap * (len(ln) - 1); x = W / 2 - lw / 2
+                for sp, ts, kind, l, r in ln:
+                    k = ease((t - ts + 0.04) / (0.16 if kind != 'g' else 0.22))
+                    if k > 0:
+                        dy = (1 - k) * (8 if kind != 'g' else 14)
+                        xo = 0 if kind == 'g' else sp.get('xoff', 0)
+                        T.over(img, sp, x - l - xo, b - sp['base'] + dy, k * ko)
+                        if kind == 'g':
+                            sk = (t - ts - 0.1) / 0.8
+                            if 0 <= sk <= 1: T.over(img, shimmer(sp, sk), x - l, b - sp['base'] + dy, 0.6 * k * ko)
+                    x += (r - l) + gap
 
     # —— 3b · ĐỒ HOẠ LÔ ĐẤT (ngang × dài): mặt đất phối cảnh nhẹ, viền vàng chạy quanh ranh, kích thước sáng theo lời ——
     def plot(self, img, t):
@@ -723,6 +865,7 @@ class FX:
         dim_all(img, self.darkness(img, t))
         self.plot(img, t)
         self.keywords(img, t)
+        self.subs(img, t)
         self.hotline(img, t)
         self.offer(img, t)
         self.chips(img, t)

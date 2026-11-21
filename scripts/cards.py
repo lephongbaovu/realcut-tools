@@ -20,6 +20,14 @@ class Cards:
             self._c[kk] = T.sprite(*a, **k)
         return self._c[kk]
 
+    def _gold(self, text, font, size):
+        """cùng chất liệu vàng với từ khoá khi ads.json chọn gold_style (vd 'polished')"""
+        import sys
+        m = sys.modules.get('__main__')
+        if not hasattr(m, 'GOLD'):
+            import adsfx as m
+        return m.G(text, font, size) if m.GOLD['style'] != 'glitter' else None
+
     def dim_amount(self, t):
         d = 0.0
         for c in self.cards:
@@ -69,6 +77,7 @@ class Cards:
         u = self.u; e = T.env(t, c['t'], c['t'] + c['d'], 0.35, 0.3)
         k = T.ease_out((t - c['t']) / 0.6)
         num = self.S('cn', c.get('num', ''), c.get('num_font', 'display'), u * 0.15, 'gold')          # LPV (anh Vũ chốt 21/11)
+        num = self._gold(c.get('num', ''), c.get('num_font', 'display'), u * 0.15) or num
         txt = self.S('ct', T.nfc(c['text']).upper(), c.get('text_font', 'display'), u * 0.05, 'cream', tracking=0.06)
         cy = self.H * c.get('y', 0.40)
         T.over(img, num, (self.W - num['w']) / 2, cy - num['h'] + (1 - k) * u * 0.04, e)
@@ -88,7 +97,7 @@ class Cards:
         except ValueError:
             shown = val
         size = u * c.get('size', 0.25)
-        big = T.sprite(shown, c.get('num_font', 'display'), size, 'gold')                 # LPV
+        big = self._gold(shown, c.get('num_font', 'display'), size) or T.sprite(shown, c.get('num_font', 'display'), size, 'gold')   # LPV
         unit = self.S('su', T.nfc(c.get('unit', '')), c.get('unit_font', 'display'), size * 0.32, 'cream') if c.get('unit') else None
         lab = self.S('sl2', T.nfc(c.get('label', '')).upper(), 'light', u * 0.034, 'cream', tracking=0.25) if c.get('label') else None
         cy = self.H * c.get('y', 0.38)
