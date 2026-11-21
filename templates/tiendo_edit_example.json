@@ -1,0 +1,30 @@
+{
+ "ratio": "9:16",
+ "grade": {
+  "preset": "neutral",
+  "strength": 1.0,
+  "sat": 1.04
+ },
+ "end_hold": 0.3,
+ "broll": [],
+ "aroll_zoom": [
+  {
+   "t": 0.0,
+   "d": 4.55,
+   "from": 1.0,
+   "to": 1.06
+  },
+  {
+   "t": 19.9,
+   "d": 2.6,
+   "type": "punch",
+   "scale": 1.08
+  },
+  {
+   "t": 68.64,
+   "d": 1.9,
+   "from": 1.04,
+   "to": 1.0
+  }
+ ]
+}

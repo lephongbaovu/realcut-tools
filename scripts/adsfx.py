@@ -273,6 +273,15 @@ class FX:
     def __init__(self, da):
         self.da = da
         self.A = load_json(os.path.join(da, 'ads.json'))
+        if self.A.get('style', 'v2') != 'classic':     # BỘ CHỮ MẶC ĐỊNH anh Vũ chốt 21/11 (ERA City tiến độ v22) — "style": "classic" = vàng nhũ cũ
+            for k_, v_ in dict(gold_style='polished', big_material='gold_brushed', big_flat=False,
+                               sub_material='platinum_brushed', sub_flat=False, sub_font='BeVietnamPro-Bold.ttf', sub_upper=True,
+                               sub_tracking=0.24, sub_scale=0.84, text_shadow=False, kw_scrim=0, kw_max_w=0.72).items():
+                self.A.setdefault(k_, v_)
+            for kw_ in self.A.get('keywords', []):     # chữ trên B-roll: dải trên vùng an toàn, cách mép (anh Vũ chốt)
+                if kw_.get('pos', 'low') == 'low' and 'y' not in kw_: kw_['y'] = self.A.get('kw_y', 0.25)
+            for c_ in self.A.get('cards', []):         # chỉ thẻ chương làm tối nền; thẻ số không tối
+                if c_.get('type') == 'stat': c_.setdefault('dim', 0)
         if self.A is None: die('Chưa có DA/ads.json (xem reference/schema.md + templates/ads_example.json)')
         set_display_font(self.A.get('display_font'))
         SMALL.update(on=bool(self.A.get('sub_material')), font=self.A.get('sub_font', 'semibold'), mat={'gold': 'gold_small'}.get(self.A.get('sub_material'), self.A.get('sub_material')),

@@ -142,3 +142,15 @@ Dùng khi lời anh nói vị trí / khoảng cách tới tiện ích. Dựng th
 - Thẻ tự né nhau, nằm trong vùng an toàn; trong lúc bản đồ hiện, không đặt keyword/thẻ của ads.json đè lên (chỉ watermark).
 - `map` ghi `broll_916/<id>_sfx.json` → `mix` tự thêm tiếng vệt đường chạy + "ting" khi thẻ km bật + tiếng lùi toàn cảnh (tắt: `audio.map_sfx: false`). Thẻ BĐS ẩn khi camera zoom theo tuyến, hiện lại ở toàn cảnh.
 - Mỗi tiện ích ~1.3–1.5 s là đọc kịp; nhiều hơn 5–6 tiện ích → tách 2 bản đồ.
+
+## 6 · Bộ chữ (mặc định từ 21/11/2026 — anh Vũ chốt ở ERA City tiến độ v22)
+Chỉ **2 kiểu chữ** cho cả video. Bỏ trống các khoá dưới là đúng (script tự đặt); `"style": "classic"` = quay về vàng nhũ cũ.
+- **Chữ lớn**: LPV Display, `big_material: "gold_brushed"` (vàng xước, mặt kim loại + mép vát + độ dày khối) — từ khoá, số chương, số trên thẻ số, số hotline.
+- **Chữ nhỏ**: Be Vietnam Bold IN HOA giãn chữ, `sub_material: "platinum_brushed"` (bạch kim xước có khối) — dòng phụ từ khoá, tên chương, đơn vị ("CĂN"), nhãn thẻ số.
+- Không bóng, không dải tối sau chữ (`text_shadow: false`, `kw_scrim: 0`); chữ rộng tối đa 72 % khung (`kw_max_w`).
+- Chữ trên B-roll nằm **dải trên** vùng an toàn, cách mép: chữ thường `y` 0.25, chữ cấp 1 (to nhất) 0.265, thẻ chương 0.30, thẻ số 0.29, hotline 0.20. Chữ trên đầu người nói vẫn `pos: top`.
+- Cấp chữ: cấp 1 (3–5 ý đắt nhất) `size` 150, `sub_size` 64 · cấp 2 `size` 112, `sub_size` 56. Không quá ~20 chữ/70 s.
+- Thẻ chương làm tối nền (`dim` 0.55 mặc định); thẻ số không tối.
+- Liệt kê nhấn mạnh (vd NHÌN THẤY / CẢM NHẬN / TRẢI NGHIỆM): từng keyword `stack: true` + `x`, `y` riêng xếp **zigzag**, `size` 80, `pop` 0.2 (chữ to lên rồi hạ khi xuất hiện).
+- Khoá khác có sẵn: `x` (tâm ngang), `pop`, `y_sub` (dòng phụ nằm trên chữ lớn), `foil_tone`, `glow`; chất liệu khác cho `big_material`/`sub_material`: `gold`, `platinum`, `foil`, `foil_cream`, `rose`, `satin`, `onyx`, `bronze`, `ivory`, `steel`, `solid_<white|ivory|champagne|sand>`, `outline_<màu>`; `*_flat: true` = bỏ độ dày khối.
+- Mẫu đầy đủ: `templates/tiendo_ads_example.json`.

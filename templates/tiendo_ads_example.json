@@ -1,0 +1,312 @@
+{
+ "_ghi_chu": "Ví dụ thật: ERA City cập nhật tiến độ (v22 anh Vũ chốt 21/11/2026) — video công trường + flycam, không giá. Bộ chữ: vàng xước khối + bạch kim xước khối (nay là mặc định). Mốc = giây cut.mp4.",
+ "brand": {
+  "name": "ERA City",
+  "hotline": "0949.435.499"
+ },
+ "keywords": [
+  {
+   "t0": 0.05,
+   "t1": 2.2,
+   "main": "TƯƠNG LAI",
+   "sub": "BĐS hình thành trong",
+   "pos": "top",
+   "size": 115,
+   "y": 0.232,
+   "y_sub": 0.178,
+   "sub_size": 46
+  },
+  {
+   "t0": 2.3,
+   "t1": 3.45,
+   "main": "PHỐI CẢNH",
+   "pos": "top",
+   "size": 104,
+   "y": 0.222
+  },
+  {
+   "t0": 3.6,
+   "t1": 4.52,
+   "main": "CAM KẾT",
+   "pos": "top",
+   "size": 104,
+   "y": 0.222
+  },
+  {
+   "t0": 5.3,
+   "t1": 7.6,
+   "main": "THỰC TẾ",
+   "sub": "tại công trường",
+   "pos": "low",
+   "size": 150,
+   "sub_size": 64,
+   "y": 0.265
+  },
+  {
+   "t0": 14.2,
+   "t1": 15.45,
+   "main": "THÀNH HÌNH",
+   "sub": "nhà bán hàng",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 15.7,
+   "t1": 19.85,
+   "main": "STUDIO MILOU",
+   "sub": "kiến trúc · đến từ Pháp",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 20.5,
+   "t1": 22.5,
+   "main": "CUỐI THÁNG 11",
+   "sub": "dự kiến hoàn thiện",
+   "pos": "low",
+   "size": 150,
+   "sub_size": 64,
+   "y": 0.265
+  },
+  {
+   "t0": 24.9,
+   "t1": 27.7,
+   "main": "TRẢI NGHIỆM",
+   "sub": "trước khi lựa chọn",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 32.9,
+   "t1": 34.9,
+   "main": "TẦNG 2",
+   "sub": "đã thi công lên",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 36.0,
+   "t1": 39.3,
+   "main": "DIỆN MẠO",
+   "sub": "khu phố thương mại",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 39.75,
+   "t1": 41.25,
+   "main": "XUÂN MAI CORP",
+   "sub": "chủ đầu tư",
+   "pos": "low",
+   "size": 150,
+   "sub_size": 64,
+   "y": 0.265
+  },
+  {
+   "t0": 41.55,
+   "t1": 43.5,
+   "main": "TÂM HUYẾT",
+   "sub": "& nguồn lực",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 45.7,
+   "t1": 47.2,
+   "main": "BÀI BẢN",
+   "sub": "& chỉn chu",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 48.5,
+   "t1": 51.2,
+   "main": "CHÚ TRỌNG",
+   "sub": "trải nghiệm khách hàng",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 52.1,
+   "t1": 55.3,
+   "main": "NHÌN THẤY",
+   "size": 80,
+   "y": 0.262,
+   "dim": 0.3,
+   "stack": true,
+   "pos": "low",
+   "pop": 0.2,
+   "max_w": 0.72,
+   "x": 0.37
+  },
+  {
+   "t0": 52.72,
+   "t1": 55.3,
+   "main": "CẢM NHẬN",
+   "size": 80,
+   "y": 0.318,
+   "dim": 0.3,
+   "stack": true,
+   "pos": "low",
+   "pop": 0.2,
+   "max_w": 0.72,
+   "x": 0.63
+  },
+  {
+   "t0": 53.95,
+   "t1": 55.3,
+   "main": "TRẢI NGHIỆM",
+   "size": 80,
+   "y": 0.374,
+   "dim": 0.3,
+   "stack": true,
+   "pos": "low",
+   "pop": 0.2,
+   "max_w": 0.72,
+   "x": 0.4
+  },
+  {
+   "t0": 59.8,
+   "t1": 61.2,
+   "main": "ERA City",
+   "pos": "low",
+   "size": 130,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 65.3,
+   "t1": 67.0,
+   "main": "THANH TOÁN",
+   "sub": "thiết kế riêng",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 67.3,
+   "t1": 68.62,
+   "main": "ƯU ĐÃI",
+   "sub": "đợt đầu tiên",
+   "pos": "low",
+   "size": 112,
+   "sub_size": 56,
+   "y": 0.25
+  },
+  {
+   "t0": 69.3,
+   "t1": 70.36,
+   "main": "ERA City",
+   "pos": "top",
+   "size": 150
+  }
+ ],
+ "wordmark": {
+  "t0": 10.05,
+  "t1": 11.0,
+  "text": "ERA City",
+  "label": "DỰ ÁN"
+ },
+ "hotline_card": {
+  "t0": 61.5,
+  "t1": 65.0,
+  "number": "0949.435.499",
+  "x": 0.5,
+  "y": 0.2
+ },
+ "cards": [
+  {
+   "t": 11.15,
+   "d": 2.8,
+   "type": "chapter",
+   "num": "01",
+   "text": "Sale Gallery",
+   "y": 0.3,
+   "dim": 0.55
+  },
+  {
+   "t": 27.98,
+   "d": 1.25,
+   "type": "chapter",
+   "num": "02",
+   "text": "Nhà phố thương mại",
+   "y": 0.3,
+   "dim": 0.55
+  },
+  {
+   "t": 29.25,
+   "d": 3.3,
+   "type": "stat",
+   "value": "32",
+   "unit": "căn",
+   "label": "đợt mở bán đầu tiên",
+   "size": 0.23,
+   "y": 0.29,
+   "dim": 0
+  }
+ ],
+ "transitions": [
+  [
+   4.57,
+   "zoom"
+  ],
+  [
+   11.03,
+   "whip"
+  ],
+  [
+   27.97,
+   "whip"
+  ],
+  [
+   39.5,
+   "zoom"
+  ],
+  [
+   68.64,
+   "zoom"
+  ]
+ ],
+ "audio": {
+  "drop": {
+   "track": 8.1,
+   "video": 4.57
+  },
+  "music_gain": 0.12
+ },
+ "gold_style": "polished",
+ "kw_max_w": 0.72,
+ "kw_scrim": 0,
+ "sub_font": "BeVietnamPro-Bold.ttf",
+ "sub_upper": true,
+ "sub_tracking": 0.24,
+ "sub_scale": 0.84,
+ "sub_rule": 0,
+ "sub_color": [
+  222,
+  226,
+  232
+ ],
+ "text_shadow": false,
+ "sub_material": "platinum_brushed",
+ "sub_flat": false,
+ "big_material": "gold_brushed",
+ "big_flat": false
+}
