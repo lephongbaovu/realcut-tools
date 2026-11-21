@@ -172,7 +172,7 @@ def main():
         if 'drop' in cfg:                     # {"track": giây drop trong bài, "video": giây cần drop}
             mi = cfg['drop']['track'] - cfg['drop']['video']
         inputs += ['-ss', f'{max(0, mi):.3f}', '-i', cfg['music']]
-        g = cfg.get('music_gain', 0.2); endt = A.get('end', {}).get('t', dur)   # anh Vũ duyệt: nhạc chỉ làm nền dưới giọng
+        g = cfg.get('music_gain', 0.12); endt = A.get('end', {}).get('t', dur)   # anh Vũ chốt 21/11 (ERA City tiến độ): nhạc nền 0.12 ≈ thấp hơn giọng ~18 dB
         vol = f"if(lt(t,{endt}),{g},{g}+0.30*min(1,(t-{endt})/0.8))"
         pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
         if pg and 'drop' in cfg:

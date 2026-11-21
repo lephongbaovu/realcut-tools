@@ -50,19 +50,9 @@ _GR_X = [0.0, 0.16, 0.36, 0.58, 0.78, 0.92, 1.0]
 _GR_C = [(48, 26, 6), (112, 66, 16), (178, 118, 34), (226, 172, 72), (248, 214, 128), (255, 238, 186), (255, 251, 232)]
 
 _PT_C = [(34, 36, 42), (84, 89, 98), (142, 148, 158), (194, 200, 209), (226, 230, 236), (243, 245, 249), (255, 255, 255)]   # bạch kim
-_RAMPS = {'gold': _GR_C, 'gold_small': _GR_C, 'gold_brushed': _GR_C, 'platinum_brushed': _PT_C, 'platinum': _PT_C,
-    'rose':    [(64, 34, 28), (122, 70, 58), (180, 116, 96), (222, 164, 142), (242, 202, 186), (252, 228, 218), (255, 246, 240)],   # vàng hồng champagne
-    'satin':   [(92, 64, 30), (140, 104, 56), (178, 142, 88), (204, 172, 118), (222, 194, 144), (236, 214, 170), (246, 232, 200)],   # vàng mờ satin
-    'onyx':    [(4, 4, 6), (12, 12, 15), (24, 24, 28), (40, 40, 46), (64, 64, 72), (104, 104, 112), (170, 170, 178)],                 # đá đen bóng
-    'bronze':  [(30, 18, 8), (70, 44, 22), (112, 76, 40), (150, 108, 62), (184, 142, 92), (210, 176, 128), (232, 208, 168)],         # đồng thau cổ
-    'ivory':   [(150, 140, 122), (184, 174, 156), (210, 202, 186), (228, 222, 208), (240, 236, 226), (248, 245, 238), (255, 253, 248)], # ngà
-    'steel':   [(40, 44, 50), (82, 88, 96), (124, 130, 140), (164, 170, 180), (196, 202, 210), (222, 226, 232), (244, 246, 250)]}       # thép xước
-# tương phản mặt gương (1 = đánh bóng gắt) · xước ngang · viền màu riêng
-_SOLID = {'white': (255, 255, 255), 'ivory': (245, 239, 228), 'champagne': (220, 198, 160), 'sand': (214, 190, 156),
-          'pearl': (236, 234, 229)}
-_MOPT = {'gold_brushed': dict(con=0.6, brush=1), 'platinum_brushed': dict(con=0.7, brush=1), 'satin': dict(con=0.35), 'ivory': dict(con=0.25), 'steel': dict(con=0.55, brush=1), 'bronze': dict(con=0.6),
-         'onyx': dict(con=0.9, rim=(236, 200, 120)), 'rose': dict(con=0.85)}
-MAT = {'cur': 'gold', 'flat': False}
+_RAMPS = {'gold': _GR_C, 'gold_brushed': _GR_C, 'platinum_brushed': _PT_C}   # bộ chữ anh Vũ chốt 21/11: vàng xước (lớn) + bạch kim xước (nhỏ)
+_MOPT = {'gold_brushed': dict(con=0.6, brush=1), 'platinum_brushed': dict(con=0.7, brush=1)}   # con = tương phản mặt gương · brush = vệt xước ngang
+MAT = {'cur': 'gold'}
 SMALL = {'on': False}   # kiểu chữ NHỎ chung cho cả video (dòng phụ, tên chương, đơn vị, nhãn) — anh Vũ 21/11: chỉ 2 kiểu lớn/nhỏ
 
 def _gold_ramp(I):
@@ -73,12 +63,9 @@ def polished_gold(a, base_y, size):
     """THỎI VÀNG ĐẶC KHẮC THÀNH CHỮ (anh Vũ 21/11): mặt chữ PHẲNG bóng như gương phản chiếu ánh đèn (loang sáng–tối),
     mép VÁT CẠNH sắc bắt sáng trên-trái / tối dưới-phải. Độ dày khối vẽ riêng trong G (_gold_side)."""
     h, w = a.shape
-    sk = MAT['cur'].replace('solid_', '').replace('outline_', '')
-    if MAT['cur'].startswith(('solid_', 'outline_')):              # PHẲNG (không kim loại): một màu đặc
-        g = np.empty((h, w, 3), np.float32); g[:] = _SOLID.get(sk, (255, 255, 255)); return g
     m = (a > 0.5).astype(np.uint8)
     dt = cv2.distanceTransform(m, cv2.DIST_L2, 5).astype(np.float32)
-    bw = max(1.2, size * 0.014) if MAT.get('flat') else max(2.0, size * 0.032)   # mép vát: phẳng = chỉ 1 đường sáng mảnh
+    bw = max(2.0, size * 0.032)                                  # bề rộng mép vát (hẹp, sắc)
     bw = float(bw); size = float(size)
     hgt = cv2.GaussianBlur(np.clip(dt / bw, 0, 1).astype(np.float32), (0, 0), 0.45)
     gx = cv2.Sobel(hgt, cv2.CV_32F, 1, 0, ksize=3) / 8 * bw; gy = cv2.Sobel(hgt, cv2.CV_32F, 0, 1, ksize=3) / 8 * bw
@@ -105,9 +92,6 @@ def polished_gold(a, base_y, size):
     I = face * (1 - onb) + bev * onb
     I = np.clip(I * 0.82 + GOLD.get('lift', 0.16), 0, 1)          # độ sáng chung (anh Vũ: sáng lên 1 tý)
     g = _gold_ramp(I)
-    if mo.get('rim'):                                             # viền kim loại khác màu chạy quanh mép (vd đá đen viền vàng)
-        rim = np.clip(onb * 1.6, 0, 1)[..., None]; rc = np.array(mo['rim'], np.float32)
-        g = g * (1 - rim) + rc * (0.55 + 0.6 * dif[..., None]) * rim
     sp = np.clip(nx * -0.6 + ny * -0.8, 0, 1) * onb               # loá dọc mép vát hướng đèn
     g += (sp ** 3 * 170)[..., None] * np.array((1.0, 0.96, 0.82), np.float32)
     g += (np.exp(-(((xx - w * 0.26) / (w * 0.09)) ** 2 + ((v - 0.18) / 0.10) ** 2)) * 60 * (1 - onb))[..., None]   # điểm loá trên mặt
@@ -125,53 +109,22 @@ def _gold_side(a, size):
         new = sh * (1 - acc); acc = acc + new; col += new[..., None] * c
     return acc, col / np.maximum(acc, 1e-4)[..., None]
 
-_FOIL = [(0.00, (122, 90, 36)), (0.14, (201, 162, 90)), (0.24, (246, 226, 162)), (0.28, (255, 246, 214)), (0.38, (217, 180, 104)),
-         (0.52, (140, 106, 44)), (0.64, (232, 201, 131)), (0.70, (255, 241, 194)), (0.82, (184, 143, 69)), (1.00, (110, 80, 32))]   # FOIL của vucut
-_FOIL_CREAM = [(0.0, (226, 214, 190)), (0.3, (250, 244, 230)), (0.5, (236, 224, 200)), (0.75, (255, 251, 240)), (1.0, (222, 208, 182))]
-
-def foil_sprite(text, font, size, tracking, mat):
-    """chữ gradient phát sáng (vucut): linear-gradient 100° nhiều điểm sáng–tối + quầng vàng mềm (drop-shadow 0 0 14px vàng .45)"""
-    base = T.sprite(T.nfc(text), font, size, 'cream', tracking=tracking)
-    P = max(8, int(size * 0.32)); h, w = base['h'] + 2 * P, base['w'] + 2 * P
-    a = np.zeros((h, w), np.float32); a[P:P + base['h'], P:P + base['w']] = base['a']
-    st = _FOIL_CREAM if mat == 'foil_cream' else _FOIL
-    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
-    tt = (xx * 0.985 + yy * 0.174) / max(1.0, w * 0.985 + h * 0.174)
-    tt = 0.10 + tt * 0.86                                          # cửa sổ dải màu thấy trên chữ
-    xs = [p for p, _ in st]
-    g = np.stack([np.interp(tt, xs, [c[q] for _, c in st]) for q in range(3)], -1).astype(np.float32)
-    if mat != 'foil_cream':                                       # foil_tone < 1 = vàng đậm hơn (giữ độ bão hoà, hạ sáng)
-        ft = GOLD.get('foil_tone', 1.0); lum = g.mean(-1, keepdims=True)
-        g = np.clip(lum + (g - lum) * (1 + (1 - ft) * 1.2), 0, 255) * ft
-    glow_a = GOLD.get('glow', 0.45) * (0.6 if mat == 'foil_cream' else 1.0)
-    gl = cv2.GaussianBlur(a, (0, 0), max(2.0, size * 0.18)) * glow_a if glow_a > 0 else np.zeros_like(a)
-    gc = np.array((201, 164, 92) if mat != 'foil_cream' else (240, 226, 196), np.float32)
-    col = gc[None, None, :] * (1 - a[..., None]) + g * a[..., None]
-    return dict(rgb=col, a=np.clip(np.maximum(a, gl), 0, 1), fill=a, base=base['base'] + P, w=w, h=h, xoff=base.get('xoff', 0) - P)
-
-def G(text, font, size, pad=8, mat='gold', tracking=0.03, flat=False):
+def G(text, font, size, pad=8, mat='gold', tracking=0.03):
     """chữ VÀNG NHŨ: gradient vàng + hạt nhũ lấp lánh (đổi pha 5 lần/s) + bóng mềm rất nhẹ — không viền."""
     ph = int(CUR['t'] * 5) % 3 if GOLD['style'] != 'polished' else 0
-    key = (text, font, int(size), ph, GOLD['style'], GOLD.get('shadow'), mat, tracking, flat, GOLD.get('mat'), GOLD.get('flat'), GOLD.get('foil_tone'))
+    key = (text, font, int(size), ph, GOLD['style'], GOLD.get('shadow'), mat, tracking, GOLD.get('mat'))
     if key in _gc: return _gc[key]
     base = T.sprite(T.nfc(text), font, size, 'cream', tracking=tracking)
     h, w = base['h'] + 2 * pad, base['w'] + 2 * pad
     a = np.zeros((h, w), np.float32); a[pad:pad + base['h'], pad:pad + base['w']] = base['a']
     sh = np.roll(cv2.GaussianBlur(a, (0, 0), max(2, size * 0.05)), int(size * 0.03) + 1, axis=0)
-    if mat == 'gold': mat = GOLD.get('mat', 'gold'); flat = flat or GOLD.get('flat', False)
-    MAT['cur'] = mat; MAT['flat'] = flat
-    if mat.startswith('foil'):                  # GRADIENT PHÁT SÁNG kiểu vucut: dải vàng chéo 100° + quầng sáng vàng
-        sp = foil_sprite(text, font, size, tracking, mat)
-        if len(_gc) > 600: _gc.clear()
-        _gc[key] = sp; return sp
+    if mat == 'gold': mat = GOLD.get('mat', 'gold')
+    MAT['cur'] = mat
     if GOLD['style'] == 'polished' or mat != 'gold':   # thỏi vàng đặc khắc thành chữ (anh Vũ 21/11): mặt gương + vát cạnh + độ dày khối
         P = max(pad, int(size * 0.12)); h, w = base['h'] + 2 * P, base['w'] + 2 * P
         a = np.zeros((h, w), np.float32); a[P:P + base['h'], P:P + base['w']] = base['a']
-        if mat.startswith('outline_'):
-            k_ = max(2, int(size * 0.035)); er = cv2.erode(a, np.ones((2 * k_ + 1, 2 * k_ + 1), np.uint8)); a = np.clip(a - er, 0, 1)
-        if mat.startswith(('solid_', 'outline_')): flat = True
         g = polished_gold(a, base['base'] + P, size)
-        sa, sc = _gold_side(a, size) if not flat else (np.zeros_like(a), np.zeros(a.shape + (3,), np.float32))   # phẳng: không độ dày khối
+        sa, sc = _gold_side(a, size)
         sh = cv2.GaussianBlur(np.maximum(a, sa), (0, 0), max(2, size * 0.05))
         sh = np.roll(np.roll(sh, int(size * 0.05) + 1, axis=0), int(size * 0.03), axis=1)
         side = sa * (1 - a)
@@ -274,8 +227,8 @@ class FX:
         self.da = da
         self.A = load_json(os.path.join(da, 'ads.json'))
         if self.A.get('style', 'v2') != 'classic':     # BỘ CHỮ MẶC ĐỊNH anh Vũ chốt 21/11 (ERA City tiến độ v22) — "style": "classic" = vàng nhũ cũ
-            for k_, v_ in dict(gold_style='polished', big_material='gold_brushed', big_flat=False,
-                               sub_material='platinum_brushed', sub_flat=False, sub_font='BeVietnamPro-Bold.ttf', sub_upper=True,
+            for k_, v_ in dict(gold_style='polished', big_material='gold_brushed',
+                               sub_material='platinum_brushed', sub_font='BeVietnamPro-Bold.ttf', sub_upper=True,
                                sub_tracking=0.24, sub_scale=0.84, text_shadow=False, kw_scrim=0, kw_max_w=0.72).items():
                 self.A.setdefault(k_, v_)
             for kw_ in self.A.get('keywords', []):     # chữ trên B-roll: dải trên vùng an toàn, cách mép (anh Vũ chốt)
@@ -284,9 +237,9 @@ class FX:
                 if c_.get('type') == 'stat': c_.setdefault('dim', 0)
         if self.A is None: die('Chưa có DA/ads.json (xem reference/schema.md + templates/ads_example.json)')
         set_display_font(self.A.get('display_font'))
-        SMALL.update(on=bool(self.A.get('sub_material')), font=self.A.get('sub_font', 'semibold'), mat={'gold': 'gold_small'}.get(self.A.get('sub_material'), self.A.get('sub_material')),
-                     flat=bool(self.A.get('sub_flat', False)), tracking=self.A.get('sub_tracking', 0.28))
-        GOLD['mat'] = self.A.get('big_material', 'gold'); GOLD['glow'] = self.A.get('glow', 0.45); GOLD['foil_tone'] = self.A.get('foil_tone', 1.0); GOLD['flat'] = bool(self.A.get('big_flat', False))
+        SMALL.update(on=bool(self.A.get('sub_material')), font=self.A.get('sub_font', 'semibold'), mat=self.A.get('sub_material'),
+                     tracking=self.A.get('sub_tracking', 0.28))
+        GOLD['mat'] = self.A.get('big_material', 'gold');
         GOLD['style'] = self.A.get('gold_style', 'glitter'); GOLD['shadow'] = 0.45 if self.A.get('text_shadow', True) else 0.0
         E = load_json(os.path.join(da, 'edit.json'), {})
         self.broll = [(b['t'], b['t'] + b['d']) for b in E.get('broll', [])]
@@ -503,9 +456,9 @@ class FX:
                 if sc == 'gold': gline(img, stx, sf, ssz2, W / 2, yy_, kk)
                 else:
                     trk = SO('sub_tracking', 0.01); trail = ssz2 * 0.92 * trk     # khoảng giãn sau chữ cuối → bù để căn giữa đúng
-                    smat = {'gold': 'gold_small'}.get(SO('sub_material', None), SO('sub_material', None))     # 'platinum' = thỏi bạch kim cắt chữ (mặt gương + vát + độ dày khối)
+                    smat = SO('sub_material', None)     # 'platinum' = thỏi bạch kim cắt chữ (mặt gương + vát + độ dày khối)
                     if smat:
-                        sp_ = G(stx, sf, ssz2 * 0.92, mat=smat, tracking=trk, flat=bool(SO('sub_flat', False)))
+                        sp_ = G(stx, sf, ssz2 * 0.92, mat=smat, tracking=trk)
                         if kk > 0: T.over(img, sp_, W / 2 + trail / 2 - sp_['w'] / 2, yy_ - sp_['base'], kk)
                         sp_ = dict(sp_, xoff=0)
                     else:

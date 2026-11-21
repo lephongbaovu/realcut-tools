@@ -102,7 +102,7 @@ Mục nào không cần thì bỏ hẳn khoá đó.
  "audio": {
    "music": "music/nhac.mp3",          // BỎ TRỐNG = nhạc mặc định anh Vũ duyệt "Life is a Dream" (Mixkit 837, tự tải, drop tự đặt lúc chốt giá, pre_drop_gain 2.0) · false = không nhạc
    "drop": {"track": 15.84, "video": 3.38},   // giây drop trong bài → giây cần drop trong video (thường = price_t)
-   "music_gain": 0.2, "lufs": -14,          // mặc định 0.2 = nhạc nền thấp hơn giọng ~10–12 dB (anh Vũ duyệt)          // nhạc dưới giọng ~8–9 LU là vừa · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
+   "music_gain": 0.12, "lufs": -14,         // mặc định 0.12 = nhạc nền thấp hơn giọng ~18 dB (anh Vũ chốt 21/11)          // nhạc dưới giọng ~8–9 LU là vừa · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
   
    "sfx_auto": true,  "sfx_db": {"whoosh": -24, "hit": -17, "count": -17, "out": -27}, "ranh_db": -26,   // mức mặc định đã hạ, chỉ ghi khi cần đổi                   // whoosh ở transitions, hit ở giá + khung kết, shimmer ở offer (thưa ≥ 2.5 s)
    "sfx_lib": {"whoosh": "", "hit": "", "shimmer": ""},   // file riêng; trống → tự tổng hợp (không bản quyền)
@@ -152,5 +152,5 @@ Chỉ **2 kiểu chữ** cho cả video. Bỏ trống các khoá dưới là đ�
 - Cấp chữ: cấp 1 (3–5 ý đắt nhất) `size` 150, `sub_size` 64 · cấp 2 `size` 112, `sub_size` 56. Không quá ~20 chữ/70 s.
 - Thẻ chương làm tối nền (`dim` 0.55 mặc định); thẻ số không tối.
 - Liệt kê nhấn mạnh (vd NHÌN THẤY / CẢM NHẬN / TRẢI NGHIỆM): từng keyword `stack: true` + `x`, `y` riêng xếp **zigzag**, `size` 80, `pop` 0.2 (chữ to lên rồi hạ khi xuất hiện).
-- Khoá khác có sẵn: `x` (tâm ngang), `pop`, `y_sub` (dòng phụ nằm trên chữ lớn), `foil_tone`, `glow`; chất liệu khác cho `big_material`/`sub_material`: `gold`, `platinum`, `foil`, `foil_cream`, `rose`, `satin`, `onyx`, `bronze`, `ivory`, `steel`, `solid_<white|ivory|champagne|sand>`, `outline_<màu>`; `*_flat: true` = bỏ độ dày khối.
+- Khoá khác có sẵn: `x` (tâm ngang), `pop`, `y_sub` (dòng phụ nằm trên chữ lớn). Chỉ còn 2 chất liệu đã chốt (`gold_brushed`, `platinum_brushed`) — các chất liệu thử nghiệm khác đã gỡ.
 - Mẫu đầy đủ: `templates/tiendo_ads_example.json`.

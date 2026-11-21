@@ -36,7 +36,7 @@ class Cards:
             import adsfx as m
         S_ = m.SMALL
         if not S_.get('on'): return None
-        return m.G(T.nfc(text).upper(), S_['font'], size, mat=S_['mat'], tracking=S_['tracking'], flat=S_['flat']), size * S_['tracking']
+        return m.G(T.nfc(text).upper(), S_['font'], size, mat=S_['mat'], tracking=S_['tracking']), size * S_['tracking']
 
     def dim_amount(self, t):
         d = 0.0
