@@ -324,7 +324,7 @@ class FX:
                     by = H * 0.272 if ht is None else min(H * 0.36, ht - 36 - bottom)
                     while by - sz * 0.98 < H * SAFE[1] and sz > 90:   # chạm mép trên vùng an toàn → thu chữ
                         sz -= 6; by = min(by + 3, H * 0.36)
-                sy = by + sz * 0.5
+                sy = H * k['y_sub'] if 'y_sub' in k else by + sz * 0.5   # y_sub < y → dòng phụ nằm TRÊN chữ lớn
             elif md == 'bright':
                 sz = fit(main, 'display', k.get('size', 128), W * 0.84)
                 ssz = fit(sub, 'serif_xbi', k.get('sub_size', 60), W * 0.80) if sub else 0
@@ -342,7 +342,7 @@ class FX:
                 sc = k.get('sub_color', self.A.get('sub_color', 'cream'))
                 if sc == 'gold': gline(img, sub, 'serif_xbi', ssz, W / 2, sy + (1 - kk) * 6, kk)
                 else: cline(img, sub, 'serif_xbi', ssz * 0.92, W / 2, sy + (1 - kk) * 6, kk, color=sc, tracking=0.01, shadow=0.75)
-            return
+            if not k.get('stack'): return       # stack: true = xếp chồng nhiều từ khoá cùng lúc (mỗi dòng y riêng), vd liệt kê nhấn mạnh
 
     # —— 3b · ĐỒ HOẠ LÔ ĐẤT (ngang × dài): mặt đất phối cảnh nhẹ, viền vàng chạy quanh ranh, kích thước sáng theo lời ——
     def plot(self, img, t):
