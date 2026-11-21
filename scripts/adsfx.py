@@ -52,6 +52,7 @@ _GR_C = [(48, 26, 6), (112, 66, 16), (178, 118, 34), (226, 172, 72), (248, 214, 
 _PT_C = [(34, 36, 42), (84, 89, 98), (142, 148, 158), (194, 200, 209), (226, 230, 236), (243, 245, 249), (255, 255, 255)]   # bạch kim
 _RAMPS = {'gold': _GR_C, 'platinum': _PT_C}
 MAT = {'cur': 'gold', 'flat': False}
+SMALL = {'on': False}   # kiểu chữ NHỎ chung cho cả video (dòng phụ, tên chương, đơn vị, nhãn) — anh Vũ 21/11: chỉ 2 kiểu lớn/nhỏ
 
 def _gold_ramp(I):
     C = _RAMPS[MAT['cur']]
@@ -219,6 +220,8 @@ class FX:
         self.A = load_json(os.path.join(da, 'ads.json'))
         if self.A is None: die('Chưa có DA/ads.json (xem reference/schema.md + templates/ads_example.json)')
         set_display_font(self.A.get('display_font'))
+        SMALL.update(on=bool(self.A.get('sub_material')), font=self.A.get('sub_font', 'semibold'), mat=self.A.get('sub_material'),
+                     flat=bool(self.A.get('sub_flat', False)), tracking=self.A.get('sub_tracking', 0.28))
         GOLD['style'] = self.A.get('gold_style', 'glitter'); GOLD['shadow'] = 0.45 if self.A.get('text_shadow', True) else 0.0
         E = load_json(os.path.join(da, 'edit.json'), {})
         self.broll = [(b['t'], b['t'] + b['d']) for b in E.get('broll', [])]

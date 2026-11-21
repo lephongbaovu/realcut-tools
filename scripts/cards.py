@@ -28,6 +28,16 @@ class Cards:
             import adsfx as m
         return m.G(text, font, size) if m.GOLD['style'] != 'glitter' else None
 
+    def _small(self, text, size):
+        """kiểu chữ NHỎ chung (cùng dòng phụ từ khoá) → (sprite, khoảng giãn thừa cuối dòng) hoặc None"""
+        import sys
+        m = sys.modules.get('__main__')
+        if not hasattr(m, 'SMALL'):
+            import adsfx as m
+        S_ = m.SMALL
+        if not S_.get('on'): return None
+        return m.G(T.nfc(text).upper(), S_['font'], size, mat=S_['mat'], tracking=S_['tracking'], flat=S_['flat']), size * S_['tracking']
+
     def dim_amount(self, t):
         d = 0.0
         for c in self.cards:
@@ -83,7 +93,10 @@ class Cards:
         T.over(img, num, (self.W - num['w']) / 2, cy - num['h'] + (1 - k) * u * 0.04, e)
         lw = u * 0.16 * T.ease_out((t - c['t'] - 0.15) / 0.5)
         T.hline(img, (self.W - lw) / 2, cy + u * 0.025, lw, max(2, u * 0.0022), 'gold', e)
-        T.over(img, txt, (self.W - txt['w']) / 2, cy + u * 0.055, e * T.ease_out((t - c['t'] - 0.25) / 0.4))
+        sm = self._small(c['text'], u * 0.042)
+        if sm: txt, tr = sm
+        else: tr = 0
+        T.over(img, txt, (self.W - txt['w'] + tr) / 2, cy + u * 0.055, e * T.ease_out((t - c['t'] - 0.25) / 0.4))
 
     def d_stat(self, img, t, c):
         u = self.u; e = T.env(t, c['t'], c['t'] + c['d'], 0.35, 0.3)
@@ -100,6 +113,9 @@ class Cards:
         big = self._gold(shown, c.get('num_font', 'display'), size) or T.sprite(shown, c.get('num_font', 'display'), size, 'gold')   # LPV
         unit = self.S('su', T.nfc(c.get('unit', '')), c.get('unit_font', 'display'), size * 0.32, 'cream') if c.get('unit') else None
         lab = self.S('sl2', T.nfc(c.get('label', '')).upper(), 'light', u * 0.034, 'cream', tracking=0.25) if c.get('label') else None
+        utr = ltr = 0
+        if unit is not None and self._small(c['unit'], size * 0.21): unit, utr = self._small(c['unit'], size * 0.21)
+        if lab is not None and self._small(c['label'], u * 0.038): lab, ltr = self._small(c['label'], u * 0.038)
         cy = self.H * c.get('y', 0.38)
         tw = big['w'] + (unit['w'] + u * 0.02 if unit else 0)
         x = (self.W - tw) / 2
@@ -108,7 +124,7 @@ class Cards:
             T.over(img, unit, x + big['w'] + u * 0.02, cy - unit['base'], e)
         if lab:
             T.hline(img, (self.W - u * 0.12) / 2, cy + u * 0.04, u * 0.12, max(2, u * 0.002), 'gold', e)
-            T.over(img, lab, (self.W - lab['w']) / 2, cy + u * 0.07, e * T.ease_out((t - c['t'] - 0.3) / 0.4))
+            T.over(img, lab, (self.W - lab['w'] + ltr) / 2, cy + u * 0.07, e * T.ease_out((t - c['t'] - 0.3) / 0.4))
 
     def d_source(self, img, t, c):
         u = self.u; e = T.env(t, c['t'], c['t'] + c['d'], 0.3, 0.3)
