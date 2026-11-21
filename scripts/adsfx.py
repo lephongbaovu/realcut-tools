@@ -140,6 +140,9 @@ def foil_sprite(text, font, size, tracking, mat):
     tt = 0.10 + tt * 0.86                                          # cửa sổ dải màu thấy trên chữ
     xs = [p for p, _ in st]
     g = np.stack([np.interp(tt, xs, [c[q] for _, c in st]) for q in range(3)], -1).astype(np.float32)
+    if mat != 'foil_cream':                                       # foil_tone < 1 = vàng đậm hơn (giữ độ bão hoà, hạ sáng)
+        ft = GOLD.get('foil_tone', 1.0); lum = g.mean(-1, keepdims=True)
+        g = np.clip(lum + (g - lum) * (1 + (1 - ft) * 1.2), 0, 255) * ft
     glow_a = GOLD.get('glow', 0.45) * (0.6 if mat == 'foil_cream' else 1.0)
     gl = cv2.GaussianBlur(a, (0, 0), max(2.0, size * 0.18)) * glow_a if glow_a > 0 else np.zeros_like(a)
     gc = np.array((201, 164, 92) if mat != 'foil_cream' else (240, 226, 196), np.float32)
@@ -149,7 +152,7 @@ def foil_sprite(text, font, size, tracking, mat):
 def G(text, font, size, pad=8, mat='gold', tracking=0.03, flat=False):
     """chữ VÀNG NHŨ: gradient vàng + hạt nhũ lấp lánh (đổi pha 5 lần/s) + bóng mềm rất nhẹ — không viền."""
     ph = int(CUR['t'] * 5) % 3 if GOLD['style'] != 'polished' else 0
-    key = (text, font, int(size), ph, GOLD['style'], GOLD.get('shadow'), mat, tracking, flat, GOLD.get('mat'), GOLD.get('flat'))
+    key = (text, font, int(size), ph, GOLD['style'], GOLD.get('shadow'), mat, tracking, flat, GOLD.get('mat'), GOLD.get('flat'), GOLD.get('foil_tone'))
     if key in _gc: return _gc[key]
     base = T.sprite(T.nfc(text), font, size, 'cream', tracking=tracking)
     h, w = base['h'] + 2 * pad, base['w'] + 2 * pad
@@ -274,7 +277,7 @@ class FX:
         set_display_font(self.A.get('display_font'))
         SMALL.update(on=bool(self.A.get('sub_material')), font=self.A.get('sub_font', 'semibold'), mat={'gold': 'gold_small'}.get(self.A.get('sub_material'), self.A.get('sub_material')),
                      flat=bool(self.A.get('sub_flat', False)), tracking=self.A.get('sub_tracking', 0.28))
-        GOLD['mat'] = self.A.get('big_material', 'gold'); GOLD['glow'] = self.A.get('glow', 0.45); GOLD['flat'] = bool(self.A.get('big_flat', False))
+        GOLD['mat'] = self.A.get('big_material', 'gold'); GOLD['glow'] = self.A.get('glow', 0.45); GOLD['foil_tone'] = self.A.get('foil_tone', 1.0); GOLD['flat'] = bool(self.A.get('big_flat', False))
         GOLD['style'] = self.A.get('gold_style', 'glitter'); GOLD['shadow'] = 0.45 if self.A.get('text_shadow', True) else 0.0
         E = load_json(os.path.join(da, 'edit.json'), {})
         self.broll = [(b['t'], b['t'] + b['d']) for b in E.get('broll', [])]
