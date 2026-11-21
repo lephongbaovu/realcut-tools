@@ -50,7 +50,7 @@ _GR_X = [0.0, 0.16, 0.36, 0.58, 0.78, 0.92, 1.0]
 _GR_C = [(48, 26, 6), (112, 66, 16), (178, 118, 34), (226, 172, 72), (248, 214, 128), (255, 238, 186), (255, 251, 232)]
 
 _PT_C = [(34, 36, 42), (84, 89, 98), (142, 148, 158), (194, 200, 209), (226, 230, 236), (243, 245, 249), (255, 255, 255)]   # bạch kim
-_RAMPS = {'gold': _GR_C, 'gold_small': _GR_C, 'platinum': _PT_C,
+_RAMPS = {'gold': _GR_C, 'gold_small': _GR_C, 'gold_brushed': _GR_C, 'platinum': _PT_C,
     'rose':    [(64, 34, 28), (122, 70, 58), (180, 116, 96), (222, 164, 142), (242, 202, 186), (252, 228, 218), (255, 246, 240)],   # vàng hồng champagne
     'satin':   [(92, 64, 30), (140, 104, 56), (178, 142, 88), (204, 172, 118), (222, 194, 144), (236, 214, 170), (246, 232, 200)],   # vàng mờ satin
     'onyx':    [(4, 4, 6), (12, 12, 15), (24, 24, 28), (40, 40, 46), (64, 64, 72), (104, 104, 112), (170, 170, 178)],                 # đá đen bóng
@@ -60,7 +60,7 @@ _RAMPS = {'gold': _GR_C, 'gold_small': _GR_C, 'platinum': _PT_C,
 # tương phản mặt gương (1 = đánh bóng gắt) · xước ngang · viền màu riêng
 _SOLID = {'white': (255, 255, 255), 'ivory': (245, 239, 228), 'champagne': (220, 198, 160), 'sand': (214, 190, 156),
           'pearl': (236, 234, 229)}
-_MOPT = {'satin': dict(con=0.35), 'ivory': dict(con=0.25), 'steel': dict(con=0.55, brush=1), 'bronze': dict(con=0.6),
+_MOPT = {'gold_brushed': dict(con=0.6, brush=1), 'satin': dict(con=0.35), 'ivory': dict(con=0.25), 'steel': dict(con=0.55, brush=1), 'bronze': dict(con=0.6),
          'onyx': dict(con=0.9, rim=(236, 200, 120)), 'rose': dict(con=0.85)}
 MAT = {'cur': 'gold', 'flat': False}
 SMALL = {'on': False}   # kiểu chữ NHỎ chung cho cả video (dòng phụ, tên chương, đơn vị, nhãn) — anh Vũ 21/11: chỉ 2 kiểu lớn/nhỏ
