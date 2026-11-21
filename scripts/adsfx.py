@@ -49,8 +49,13 @@ _GSTOPS = [(-0.35, (255, 250, 228)), (0.0, (255, 238, 178)), (0.20, (240, 202, 1
 _GR_X = [0.0, 0.16, 0.36, 0.58, 0.78, 0.92, 1.0]
 _GR_C = [(48, 26, 6), (112, 66, 16), (178, 118, 34), (226, 172, 72), (248, 214, 128), (255, 238, 186), (255, 251, 232)]
 
+_PT_C = [(34, 36, 42), (84, 89, 98), (142, 148, 158), (194, 200, 209), (226, 230, 236), (243, 245, 249), (255, 255, 255)]   # bạch kim
+_RAMPS = {'gold': _GR_C, 'platinum': _PT_C}
+MAT = {'cur': 'gold', 'flat': False}
+
 def _gold_ramp(I):
-    return np.stack([np.interp(I, _GR_X, [c[q] for c in _GR_C]) for q in range(3)], -1).astype(np.float32)
+    C = _RAMPS[MAT['cur']]
+    return np.stack([np.interp(I, _GR_X, [c[q] for c in C]) for q in range(3)], -1).astype(np.float32)
 
 def polished_gold(a, base_y, size):
     """THỎI VÀNG ĐẶC KHẮC THÀNH CHỮ (anh Vũ 21/11): mặt chữ PHẲNG bóng như gương phản chiếu ánh đèn (loang sáng–tối),
@@ -58,7 +63,7 @@ def polished_gold(a, base_y, size):
     h, w = a.shape
     m = (a > 0.5).astype(np.uint8)
     dt = cv2.distanceTransform(m, cv2.DIST_L2, 5).astype(np.float32)
-    bw = max(2.0, size * 0.032)                                  # bề rộng mép vát (hẹp, sắc)
+    bw = max(1.2, size * 0.014) if MAT.get('flat') else max(2.0, size * 0.032)   # mép vát: phẳng = chỉ 1 đường sáng mảnh
     bw = float(bw); size = float(size)
     hgt = cv2.GaussianBlur(np.clip(dt / bw, 0, 1).astype(np.float32), (0, 0), 0.45)
     gx = cv2.Sobel(hgt, cv2.CV_32F, 1, 0, ksize=3) / 8 * bw; gy = cv2.Sobel(hgt, cv2.CV_32F, 0, 1, ksize=3) / 8 * bw
@@ -86,7 +91,7 @@ def polished_gold(a, base_y, size):
 
 def _gold_side(a, size):
     """độ dày thỏi vàng: đùn khối xuống-phải, mặt hông tối đồng, sáng dần về mép trước"""
-    D = max(2, int(size * 0.07)); h, w = a.shape
+    D = max(3, int(size * 0.07)); h, w = a.shape
     acc = np.zeros_like(a); col = np.zeros((h, w, 3), np.float32)
     for d in range(D, 0, -1):
         M = np.float32([[1, 0, d * 0.55], [0, 1, d]])
@@ -96,20 +101,21 @@ def _gold_side(a, size):
         new = sh * (1 - acc); acc = acc + new; col += new[..., None] * c
     return acc, col / np.maximum(acc, 1e-4)[..., None]
 
-def G(text, font, size, pad=8):
+def G(text, font, size, pad=8, mat='gold', tracking=0.03, flat=False):
     """chữ VÀNG NHŨ: gradient vàng + hạt nhũ lấp lánh (đổi pha 5 lần/s) + bóng mềm rất nhẹ — không viền."""
     ph = int(CUR['t'] * 5) % 3 if GOLD['style'] != 'polished' else 0
-    key = (text, font, int(size), ph, GOLD['style'], GOLD.get('shadow'))
+    key = (text, font, int(size), ph, GOLD['style'], GOLD.get('shadow'), mat, tracking, flat)
     if key in _gc: return _gc[key]
-    base = T.sprite(T.nfc(text), font, size, 'cream', tracking=0.03)
+    base = T.sprite(T.nfc(text), font, size, 'cream', tracking=tracking)
     h, w = base['h'] + 2 * pad, base['w'] + 2 * pad
     a = np.zeros((h, w), np.float32); a[pad:pad + base['h'], pad:pad + base['w']] = base['a']
     sh = np.roll(cv2.GaussianBlur(a, (0, 0), max(2, size * 0.05)), int(size * 0.03) + 1, axis=0)
-    if GOLD['style'] == 'polished':             # thỏi vàng đặc khắc thành chữ (anh Vũ 21/11): mặt gương + vát cạnh + độ dày khối
+    MAT['cur'] = mat; MAT['flat'] = flat
+    if GOLD['style'] == 'polished' or mat != 'gold':   # thỏi vàng đặc khắc thành chữ (anh Vũ 21/11): mặt gương + vát cạnh + độ dày khối
         P = max(pad, int(size * 0.12)); h, w = base['h'] + 2 * P, base['w'] + 2 * P
         a = np.zeros((h, w), np.float32); a[P:P + base['h'], P:P + base['w']] = base['a']
         g = polished_gold(a, base['base'] + P, size)
-        sa, sc = _gold_side(a, size)
+        sa, sc = _gold_side(a, size) if not flat else (np.zeros_like(a), np.zeros(a.shape + (3,), np.float32))   # phẳng: không độ dày khối
         sh = cv2.GaussianBlur(np.maximum(a, sa), (0, 0), max(2, size * 0.05))
         sh = np.roll(np.roll(sh, int(size * 0.05) + 1, axis=0), int(size * 0.03), axis=1)
         side = sa * (1 - a)
@@ -429,7 +435,13 @@ class FX:
                 if sc == 'gold': gline(img, stx, sf, ssz2, W / 2, yy_, kk)
                 else:
                     trk = SO('sub_tracking', 0.01); trail = ssz2 * 0.92 * trk     # khoảng giãn sau chữ cuối → bù để căn giữa đúng
-                    sp_ = cline(img, stx, sf, ssz2 * 0.92, W / 2 + trail / 2, yy_, kk, color=sc, tracking=trk, shadow=0.75 if self.A.get('text_shadow', True) else 0.0)
+                    smat = SO('sub_material', None)     # 'platinum' = thỏi bạch kim cắt chữ (mặt gương + vát + độ dày khối)
+                    if smat:
+                        sp_ = G(stx, sf, ssz2 * 0.92, mat=smat, tracking=trk, flat=bool(SO('sub_flat', False)))
+                        if kk > 0: T.over(img, sp_, W / 2 + trail / 2 - sp_['w'] / 2, yy_ - sp_['base'], kk)
+                        sp_ = dict(sp_, xoff=0)
+                    else:
+                        sp_ = cline(img, stx, sf, ssz2 * 0.92, W / 2 + trail / 2, yy_, kk, color=sc, tracking=trk, shadow=0.75 if self.A.get('text_shadow', True) else 0.0)
                     rl = SO('sub_rule', 0)              # 2 vạch vàng mảnh hai bên dòng phụ
                     if rl and sp_ is not None:
                         cols_ = np.where(sp_['a'].max(0) > 0.1)[0]          # mép chữ thật (bỏ phần đệm/giãn)
