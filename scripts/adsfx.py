@@ -99,7 +99,7 @@ def _gold_side(a, size):
 def G(text, font, size, pad=8):
     """chữ VÀNG NHŨ: gradient vàng + hạt nhũ lấp lánh (đổi pha 5 lần/s) + bóng mềm rất nhẹ — không viền."""
     ph = int(CUR['t'] * 5) % 3 if GOLD['style'] != 'polished' else 0
-    key = (text, font, int(size), ph, GOLD['style'])
+    key = (text, font, int(size), ph, GOLD['style'], GOLD.get('shadow'))
     if key in _gc: return _gc[key]
     base = T.sprite(T.nfc(text), font, size, 'cream', tracking=0.03)
     h, w = base['h'] + 2 * pad, base['w'] + 2 * pad
@@ -114,7 +114,7 @@ def G(text, font, size, pad=8):
         sh = np.roll(np.roll(sh, int(size * 0.05) + 1, axis=0), int(size * 0.03), axis=1)
         side = sa * (1 - a)
         col = np.array((20, 12, 4), np.float32)[None, None, :] * (1 - a[..., None] - side[..., None]) + sc * side[..., None] + g * a[..., None]
-        sp = dict(rgb=col, a=np.clip(np.maximum(np.maximum(a, sa), sh * 0.45), 0, 1), fill=a, base=base['base'] + P, w=w, h=h,
+        sp = dict(rgb=col, a=np.clip(np.maximum(np.maximum(a, sa), sh * GOLD.get('shadow', 0.45)), 0, 1), fill=a, base=base['base'] + P, w=w, h=h,
                   xoff=base.get('xoff', 0) - P)
         if len(_gc) > 600: _gc.clear()
         _gc[key] = sp; return sp
@@ -213,7 +213,7 @@ class FX:
         self.A = load_json(os.path.join(da, 'ads.json'))
         if self.A is None: die('Chưa có DA/ads.json (xem reference/schema.md + templates/ads_example.json)')
         set_display_font(self.A.get('display_font'))
-        GOLD['style'] = self.A.get('gold_style', 'glitter')
+        GOLD['style'] = self.A.get('gold_style', 'glitter'); GOLD['shadow'] = 0.45 if self.A.get('text_shadow', True) else 0.0
         E = load_json(os.path.join(da, 'edit.json'), {})
         self.broll = [(b['t'], b['t'] + b['d']) for b in E.get('broll', [])]
         hj = load_json(os.path.join(da, 'head.json'))
@@ -429,7 +429,7 @@ class FX:
                 if sc == 'gold': gline(img, stx, sf, ssz2, W / 2, yy_, kk)
                 else:
                     trk = SO('sub_tracking', 0.01); trail = ssz2 * 0.92 * trk     # khoảng giãn sau chữ cuối → bù để căn giữa đúng
-                    sp_ = cline(img, stx, sf, ssz2 * 0.92, W / 2 + trail / 2, yy_, kk, color=sc, tracking=trk, shadow=0.75)
+                    sp_ = cline(img, stx, sf, ssz2 * 0.92, W / 2 + trail / 2, yy_, kk, color=sc, tracking=trk, shadow=0.75 if self.A.get('text_shadow', True) else 0.0)
                     rl = SO('sub_rule', 0)              # 2 vạch vàng mảnh hai bên dòng phụ
                     if rl and sp_ is not None:
                         cols_ = np.where(sp_['a'].max(0) > 0.1)[0]          # mép chữ thật (bỏ phần đệm/giãn)
