@@ -68,8 +68,8 @@ class Cards:
     def d_chapter(self, img, t, c):
         u = self.u; e = T.env(t, c['t'], c['t'] + c['d'], 0.35, 0.3)
         k = T.ease_out((t - c['t']) / 0.6)
-        num = self.S('cn', c.get('num', ''), 'serif_xbi', u * 0.15, 'gold')
-        txt = self.S('ct', T.nfc(c['text']).upper(), 'light', u * 0.042, 'cream', tracking=0.35)
+        num = self.S('cn', c.get('num', ''), c.get('num_font', 'display'), u * 0.15, 'gold')          # LPV (anh Vũ chốt 21/11)
+        txt = self.S('ct', T.nfc(c['text']).upper(), c.get('text_font', 'display'), u * 0.05, 'cream', tracking=0.06)
         cy = self.H * c.get('y', 0.40)
         T.over(img, num, (self.W - num['w']) / 2, cy - num['h'] + (1 - k) * u * 0.04, e)
         lw = u * 0.16 * T.ease_out((t - c['t'] - 0.15) / 0.5)
@@ -88,8 +88,8 @@ class Cards:
         except ValueError:
             shown = val
         size = u * c.get('size', 0.25)
-        big = T.sprite(shown, 'serif_black', size, 'gold')
-        unit = self.S('su', T.nfc(c.get('unit', '')), 'semibold', size * 0.30, 'cream') if c.get('unit') else None
+        big = T.sprite(shown, c.get('num_font', 'display'), size, 'gold')                 # LPV
+        unit = self.S('su', T.nfc(c.get('unit', '')), c.get('unit_font', 'display'), size * 0.32, 'cream') if c.get('unit') else None
         lab = self.S('sl2', T.nfc(c.get('label', '')).upper(), 'light', u * 0.034, 'cream', tracking=0.25) if c.get('label') else None
         cy = self.H * c.get('y', 0.38)
         tw = big['w'] + (unit['w'] + u * 0.02 if unit else 0)

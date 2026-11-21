@@ -418,14 +418,14 @@ class FX:
                 sp = T.scaled(sp, min(1.0, (xb - xa) * 0.9 / sp['w']))
                 T.over(img, sp, (xa + xb) / 2 - sp['w'] / 2, (ya + yb) / 2 + sp['h'] * 0.3 - sp['base'], ki)
 
-    # —— 3c · KHUNG HOTLINE: nhãn trắng + số vàng nhũ chữ đậm, đặt trên đầu người nói ——
+    # —— 3c · KHUNG HOTLINE: nhãn LE PHONG VU (Cinzel như watermark) + số vàng nhũ chữ đậm, đặt trên đầu người nói ——
     def hotline(self, img, t):
         hc = self.A.get('hotline_card')
         if not hc or not (hc['t0'] - 0.02 <= t <= hc['t1'] + 0.3): return
         k = ease((t - hc['t0']) / 0.35); op = k * (1 - eio((t - hc['t1']) / 0.3))
         if op <= 0: return
         num = G(hc['number'], hc.get('font', 'display'), hc.get('size', 42))
-        lab = S(hc.get('label', 'HOTLINE').upper(), 'semibold', hc.get('label_size', 20), 'white', 0.38, 0.5)
+        lab = S(hc.get('label', 'LE PHONG VU').upper(), hc.get('label_font', 'business'), hc.get('label_size', 24), 'white', hc.get('label_tracking', 0.32), 0.5)   # nhãn = tên anh Vũ, font watermark (chốt 21/11)
         pad = hc.get('pad', 110 if hc.get('size', 42) > 70 else 40); pw = max(num['w'], lab['w']) + pad; ph = lab['h'] + num['h'] + pad * 0.55
         if 'y' in hc: y0 = H * hc['y']
         else:
