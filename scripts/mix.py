@@ -18,6 +18,14 @@ VOICE_CLARITY = 1      # giọng rõ chữ: cắt ù <100 Hz, bớt 250 Hz, nân
 DUCK_RATIO = 4.0       # nhạc tự hạ mạnh khi có giọng, dâng lại lúc ngừng
 DUCK_THRESHOLD = 0.03
 
+# Thư viện tiếng nhấn tự tạo (không bản quyền) — anh Vũ duyệt 22/11/2026. Giá trị = db mặc định (đã tính cùng SFX_GAIN_DB +11):
+# pop_punch/boom_tail to hơn whoosh ~3 dB (giữ phần trầm có lực) · swipe/riser_hit/shimmer_soft ≈ whoosh · bubble/puff/thock nhỏ hơn whoosh ~5–6 dB (tạo nhịp cho chữ zigzag)
+SFX_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'sfx')
+SFX_LIB = {'pop_punch': -19.0, 'boom_tail': -20.3, 'swipe': -18.9, 'riser_hit': -20.8, 'shimmer_soft': -18.1,
+           'bubble': -30.0, 'puff': -23.8, 'thock': -27.2}
+def sfx_path(f):
+    return os.path.join(SFX_DIR, f + '.wav') if f in SFX_LIB else f
+
 def decode(path, sr=22050):
     b = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-ac', '1', '-ar', str(sr), '-f', 's16le', '-'], capture_output=True).stdout
     return np.frombuffer(b, np.int16).astype(np.float32) / 32768, sr
@@ -167,8 +175,11 @@ def main():
                 if not (b['t'] - 0.05 <= tt <= b['t'] + b['d']): continue
                 if e['kind'] == 'route': keep.append((ranh(e.get('d', 1.0)), tt - 0.05, rdb))   # viền đường chạy = tiếng ranh
                 elif e['kind'] in lv: keep.append((e['kind'], tt, lv[e['kind']]))
-    for e in cfg.get('sfx', []):               # danh sách tay: giữ hết
-        keep.append((e['file'], e['t'], e.get('db', -12)))
+    for e in cfg.get('sfx', []):               # danh sách tay: giữ hết (file = đường dẫn hoặc tên trong thư viện SFX_LIB)
+        f_ = e['file']; keep.append((sfx_path(f_), e['t'], e.get('db', SFX_LIB.get(f_, -12))))
+    for k in A.get('keywords', []):              # tiếng nhấn gắn theo chữ: "sfx": tên thư viện, "sfx_t": giây (mặc định t0), "sfx_db"
+        if k.get('sfx'):
+            keep.append((sfx_path(k['sfx']), k.get('sfx_t', k['t0']), k.get('sfx_db', SFX_LIB.get(k['sfx'], -24))))
     keep.sort(key=lambda e: e[1])
     inputs = ['-i', vid, '-i', voice]
     vc = cfg.get('voice_clarity', VOICE_CLARITY)          # 1 = giọng rõ hơn: bớt ù 250 Hz, sáng 3–5 kHz, nén chặt hơn (anh Vũ duyệt 21/11)

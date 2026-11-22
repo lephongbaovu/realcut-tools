@@ -151,10 +151,37 @@ def fit(text, font, size, maxw):
     while T.text_width(T.nfc(text), font, size) > maxw and size > 30: size -= 2
     return size
 
-def gline(img, text, font, size, cx, base, op, shim=None):
-    """1 dòng vàng nhũ căn giữa tại baseline `base`; shim 0→1 = vệt sáng quét."""
+def _anim_sprite(sp, kind, p):
+    """Kiểu xuất hiện chữ (anh Vũ 22/11): blur = nhoè → nét · wipe = quét lộ trái→phải · slam = rơi từ to xuống."""
+    p = clamp(p)
+    if p >= 1: return sp, None
+    if kind == 'slam':
+        return T.scaled(sp, 1 + 0.55 * (1 - ease(p)) ** 2), None
+    if kind == 'blur':
+        sg = 16 * (1 - p) ** 1.4; sc = 1.08 - 0.08 * ease(p)
+        if sg > 0.4:
+            pd = int(sg * 3) + 2
+            rgb = cv2.copyMakeBorder(sp['rgb'], pd, pd, pd, pd, cv2.BORDER_REPLICATE)
+            a = cv2.copyMakeBorder(sp['a'], pd, pd, pd, pd, cv2.BORDER_CONSTANT, value=0)
+            k = (0, 0)
+            sp = dict(sp, rgb=cv2.GaussianBlur(rgb, k, sg), a=cv2.GaussianBlur(a, k, sg), w=sp['w'] + 2 * pd, h=sp['h'] + 2 * pd, base=sp['base'] + pd)
+        return T.scaled(sp, sc), None
+    if kind == 'wipe':
+        w = sp['w']; soft = max(8, int(w * 0.12)); edge = -soft + (w + 2 * soft) * eio(p)
+        xs = np.arange(w, dtype=np.float32)
+        m = np.clip((edge - xs) / soft + 0.5, 0, 1)[None, :].repeat(sp['h'], 0)
+        return sp, m.astype(sp['a'].dtype) if sp['a'].dtype != np.uint8 else (m * 255).astype(np.uint8)
+    return sp, None
+
+def gline(img, text, font, size, cx, base, op, shim=None, anim=None):
+    """1 dòng vàng nhũ căn giữa tại baseline `base`; shim 0→1 = vệt sáng quét; anim = (kiểu, tiến độ 0→1)."""
     if op <= 0: return None
-    sp = G(text, font, size)
+    sp = G(text, font, size); am = None
+    if anim: 
+        sp, am = _anim_sprite(sp, anim[0], anim[1])
+    if am is not None:
+        T.over(img, sp, cx - sp['w'] / 2, base - sp['base'], op, amask=am)
+        return sp
     T.over(img, sp, cx - sp['w'] / 2, base - sp['base'], op)
     if shim is not None and 0 <= shim <= 1:
         T.over(img, shimmer(sp, shim), cx - sp['w'] / 2, base - sp['base'], 0.7 * op)
@@ -446,7 +473,10 @@ class FX:
             kx = W * k.get('x', 0.5)                # x: tâm chữ theo tỉ lệ ngang (vd zigzag)
             stt = k.get('strike')                   # strike: giây gạch ngang chữ lớn (vd "KHÔNG PHẢI giá 1 căn nhà phố")
             st = ease((t - stt) / 0.22) if stt is not None else 0.0
-            gline(img, main, 'display', sz, kx, by + (1 - a) * 10, op * (1 - 0.4 * st), (t - t0 - 0.12) / 0.7)
+            an = k.get('anim'); ad = k.get('anim_d', {'slam': 0.24, 'blur': 0.45, 'wipe': 0.5}.get(an, 0.4))
+            if an: a = 1.0 if an in ('wipe', 'blur') else min(1.0, (t - t0) / 0.08); op = a * ko
+            gline(img, main, 'display', sz, kx, by + ((1 - a) * 10 if not an else 0), op * (1 - 0.4 * st), (t - t0 - 0.12 - (ad if an else 0)) / 0.7,
+                  anim=(an, (t - t0) / ad) if an else None)
             if st > 0:
                 mw = G(main, 'display', sz)['w']
                 T.hline(img, kx - mw * 0.54, by - sz * 0.34, mw * 1.08 * st, max(6, int(sz * 0.07)), 'gold', op)

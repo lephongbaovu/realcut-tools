@@ -154,3 +154,21 @@ Chỉ **2 kiểu chữ** cho cả video. Bỏ trống các khoá dưới là đ�
 - Liệt kê nhấn mạnh (vd NHÌN THẤY / CẢM NHẬN / TRẢI NGHIỆM): từng keyword `stack: true` + `x`, `y` riêng xếp **zigzag**, `size` 80, `pop` 0.2 (chữ to lên rồi hạ khi xuất hiện).
 - Khoá khác có sẵn: `x` (tâm ngang), `pop`, `y_sub`, `strike` (giây gạch ngang chữ lớn bằng vạch vàng — vd móc "KHÔNG PHẢI giá 1 căn nhà phố") (dòng phụ nằm trên chữ lớn). Chỉ còn 2 chất liệu đã chốt (`gold_brushed`, `platinum_brushed`) — các chất liệu thử nghiệm khác đã gỡ.
 - Mẫu đầy đủ: `templates/tiendo_ads_example.json`.
+
+## 7 · Kiểu chữ xuất hiện & tiếng nhấn (anh Vũ duyệt 22/11/2026, ERA City 7,5 tỷ v2)
+Khoá thêm cho mỗi mục `keywords`:
+- `"anim"`: `"slam"` (chữ rơi từ to xuống, ~0.24 s) · `"wipe"` (quét lộ trái→phải, ~0.5 s) · `"blur"` (nhoè → nét, ~0.45 s) · bỏ trống = hiện mờ + nhích lên. `anim_d` = thời lượng. Có `anim` thì bỏ `pop`.
+- `"strike"`: giây gạch ngang chữ lớn bằng vạch vàng (móc "KHÔNG PHẢI giá 1 căn nhà phố").
+- `"sfx"`: tên tiếng trong thư viện `assets/sfx/` · `"sfx_t"`: giây phát (mặc định `t0`; vd = `strike`) · `"sfx_db"`: chỉ ghi khi cần đổi mức mặc định.
+Thư viện (mức mặc định đã cân với whoosh chuyển cảnh, đo stem demucs, nghe cả loa điện thoại lẫn tai nghe):
+| tên | chất | dùng cho |
+|---|---|---|
+| `pop_punch` | pốp có lực, giữ trầm (to hơn whoosh ~3 dB) | chữ cấp 1 đi cùng `slam`: giá trị, con số, "bậc nhất" |
+| `boom_tail` | bùm trầm có ngân | 1 lần/video: chốt giá / câu kết |
+| `swipe` | gạch bút | vạch `strike` |
+| `riser_hit` | cuộn dâng rồi nhấn (đỉnh rơi đúng `sfx_t`) | vào đoạn/chương lớn (vd SIÊU TRUNG TÂM) |
+| `shimmer_soft` | lấp lánh gió sáng, không thành nốt | chữ đi cùng `wipe` |
+| `bubble` | bóp bong bóng tròn, vui | từng dòng zigzag — video nhịp nhanh, trẻ |
+| `puff` | phụt gió rất nhẹ, sang | từng dòng zigzag — video sang trọng, chậm |
+| `thock` | gõ trầm ngắn, cùng họ pop_punch | từng dòng zigzag — khi video đã dùng pop_punch (đồng bộ nhất) |
+Quy tắc: tiếng nhấn chính (pop_punch/boom_tail/riser_hit/swipe/shimmer) **3–7 tiếng/video**, cách nhau ≥ 2.5 s và không đè whoosh; tiếng zigzag chọn **1 loại cho cả video**; không "ting".
