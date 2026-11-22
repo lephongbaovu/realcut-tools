@@ -9,11 +9,14 @@ from common import load_json, probe, die
 SR = 48000
 
 
-# Mức âm mặc định — anh Vũ chốt 22/11/2026 theo video quảng cáo mẫu (đo stem demucs): giọng ≈ −13.8 LUFS, nhạc+hiệu ứng ≈ −27.5 LUFS (thấp hơn giọng ~13.5 dB), tổng −13.5
-MUSIC_GAIN = 0.545
-SFX_GAIN_DB = 15.0
-VOICE_RATIO = 2.0      # nén giọng nhẹ hơn → giọng còn nhấn nhá như video mẫu
-LUFS = -13.7
+# Mức âm mặc định — anh Vũ chốt 22/11/2026 (ERA City 7,5 tỷ v2, bản "âm thanh b2"): giọng ≈ −14.3 LUFS, nhạc+SFX ≈ −25.5 LUFS; khi có lời nhạc thấp hơn giọng ~15 dB, lúc ngừng/chuyển cảnh nhạc dâng lại; hiệu ứng thấp hơn giọng ~4–7 dB; tổng −14 LUFS
+MUSIC_GAIN = 1.1
+SFX_GAIN_DB = 11.0
+VOICE_RATIO = 2.5      # nén giọng vừa: đều mà còn nhấn nhá
+LUFS = -14.0
+VOICE_CLARITY = 1      # giọng rõ chữ: cắt ù <100 Hz, bớt 250 Hz, nâng 3–5 kHz, giảm xì s/x
+DUCK_RATIO = 4.0       # nhạc tự hạ mạnh khi có giọng, dâng lại lúc ngừng
+DUCK_THRESHOLD = 0.03
 
 def decode(path, sr=22050):
     b = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-ac', '1', '-ar', str(sr), '-f', 's16le', '-'], capture_output=True).stdout
@@ -168,9 +171,9 @@ def main():
         keep.append((e['file'], e['t'], e.get('db', -12)))
     keep.sort(key=lambda e: e[1])
     inputs = ['-i', vid, '-i', voice]
-    vc = cfg.get('voice_clarity', 0)          # 1 = giọng rõ hơn: bớt ù 250 Hz, sáng 3–5 kHz, nén chặt hơn (anh Vũ duyệt 21/11)
-    veq = ('equalizer=f=250:t=q:w=1.0:g=-2.5,equalizer=f=3200:t=q:w=1.2:g=4,equalizer=f=5500:t=q:w=1.5:g=1.5,'
-           'acompressor=threshold=-24dB:ratio=4:attack=4:release=100:makeup=3,') if vc else 'equalizer=f=3000:t=q:w=1.2:g=2,'
+    vc = cfg.get('voice_clarity', VOICE_CLARITY)          # 1 = giọng rõ hơn: bớt ù 250 Hz, sáng 3–5 kHz, nén chặt hơn (anh Vũ duyệt 21/11)
+    veq = ('highpass=f=100,equalizer=f=250:t=q:w=1.0:g=-2.5,equalizer=f=3200:t=q:w=1.2:g=3,equalizer=f=5000:t=q:w=1.5:g=2.5,treble=g=3:f=8000:t=s:w=0.6,'
+           'deesser=i=0.4:m=0.5:f=0.5,') if vc else 'equalizer=f=3000:t=q:w=1.2:g=2,'
     fc = [f"[1:a]highpass=f=80,acompressor=threshold=-20dB:ratio={cfg.get('voice_ratio', VOICE_RATIO)}:attack=5:release=120:makeup=2,"
           + veq + f"volume={cfg.get('voice_db', 0)}dB,aresample=48000,apad" + (',asplit=2[vo][vsc]' if cfg.get('music') else '[vo]')]
     mix = ['[vo]']
@@ -186,7 +189,7 @@ def main():
             dv = cfg['drop']['video']; vol = f"({vol})*if(lt(t,{dv - 0.15:.2f}),{pg},1)"
         fc.append(f"[2:a]atrim=0:{dur:.2f},asetpts=PTS-STARTPTS,aresample=48000,volume='{vol}':eval=frame,"
                   f"afade=t=in:d=0.25,afade=t=out:st={dur - 1.6:.2f}:d=1.6[mu]")
-        fc.append(f"[mu][vsc]sidechaincompress=threshold={cfg.get('duck_threshold', 0.05)}:ratio={cfg.get('duck_ratio', 3.5)}:attack=20:release=350:makeup=1[mud]")   # duck: nhạc lùi khi có giọng
+        fc.append(f"[mu][vsc]sidechaincompress=threshold={cfg.get('duck_threshold', DUCK_THRESHOLD)}:ratio={cfg.get('duck_ratio', DUCK_RATIO)}:attack=15:release=450:makeup=1[mud]")   # duck: nhạc lùi khi có giọng
         mix.append('[mud]')
     n0 = 3 if cfg.get('music') else 2
     labels = []

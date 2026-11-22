@@ -35,9 +35,9 @@ Theo câu kết trong kịch bản; hotline ~2 s để kịp chụp màn hình; 
 
 ## Bài học từ video đất nền đã duyệt (Tránh Đông 10×15, 11/2026)
 - Chữ không bao giờ che người; các khối (giá, đồ hoạ, từ khoá) nối tiếp, chừa ~0.3 s, không chồng.
-- Nhạc là nền: anh Vũ chỉnh nhỏ dần tới music_gain ~0.2; SFX phải nhẹ, không làm giật mình. Đổi nhạc: chọn Mixkit theo mood, tải https://assets.mixkit.co/music/<id>/<id>.mp3 (đã duyệt: 837 Life is a Dream).
+- Nhạc là nền nhưng phải nghe thấy: có lời thì nhạc thấp hơn giọng ~15 dB (anh Vũ chốt 22/11), lúc ngừng/chuyển cảnh nhạc tự dâng (duck). SFX nhẹ, luôn dưới giọng. Đổi nhạc: chọn Mixkit theo mood, tải https://assets.mixkit.co/music/<id>/<id>.mp3 (đã duyệt: 837 Life is a Dream).
+- Mức âm mặc định (anh Vũ chốt 22/11, ERA City 7,5 tỷ v2, đo stem demucs + ebur128): giọng ≈ −14.3 LUFS, nhạc+SFX ≈ −25.5 LUFS, tổng −14 LUFS · có lời: nhạc ~15 dB dưới giọng · chuyển cảnh: nhạc + whoosh 2–7 dB dưới giọng. mix.py: `MUSIC_GAIN 1.1`, `SFX_GAIN_DB +11`, `VOICE_RATIO 2.5`, `VOICE_CLARITY 1` (cắt <100 Hz, −2.5 dB 250 Hz, +3 dB 3.2 kHz, +2.5 dB 5 kHz, +3 dB shelf 8 kHz, de-esser), duck ratio 4 / threshold 0.03, `LUFS −14`. Đổi mức thì đo lại: `demucs --two-stems=vocals` rồi ebur128 từng stem.
 - Kiểm tra mức nhạc/giọng bằng số đo, không đoán: tách stem (demucs --two-stems=vocals) rồi đo LUFS từng stem.
 - Đồ hoạ phối cảnh không được làm sai tỉ lệ (dài 15 phải trông dài hơn ngang 10).
 
 ## Mức âm (anh Vũ chốt 22/11/2026)
-- Khớp video quảng cáo mẫu anh gửi (đo stem demucs + ebur128): giọng ≈ −13.8 LUFS, nhạc + hiệu ứng ≈ −27.5 LUFS (M50 ≈ −30, M95 ≈ −21.5), tổng ≈ −13.5 LUFS. Mặc định mix.py: `MUSIC_GAIN 0.545`, `SFX_GAIN_DB +15`, `VOICE_RATIO 2.0` (nén giọng nhẹ), `LUFS −13.7`. Đổi mức thì đo lại: `demucs --two-stems=vocals` rồi ebur128 từng stem.
