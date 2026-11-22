@@ -172,3 +172,8 @@ Thư viện (mức mặc định đã cân với whoosh chuyển cảnh, đo ste
 | `puff` | phụt gió rất nhẹ, sang | từng dòng zigzag — video sang trọng, chậm |
 | `thock` | gõ trầm ngắn, cùng họ pop_punch | từng dòng zigzag — khi video đã dùng pop_punch (đồng bộ nhất) |
 Quy tắc: tiếng nhấn chính (pop_punch/boom_tail/riser_hit/swipe/shimmer) **3–7 tiếng/video**, cách nhau ≥ 2.5 s và không đè whoosh; tiếng zigzag chọn **1 loại cho cả video**; không "ting".
+
+## 8 · Cận người nói, cắt theo phách, bộ nhạc (thêm 22/11/2026 — chờ anh Vũ duyệt bản nháp ERA City v3)
+- `realcut.py cut … --zoom 1.6 --head-y 0.47`: cắt khung 1/1.6 từ nguồn (DJI 1728×3072 → đúng 1080×1920, không mất nét), bám người theo từng đoạn, đỉnh đầu ở 0.47 khung (chừa chỗ chữ phía trên). Chữ móc giá/zigzag đặt y ≤ 0.44.
+- `python3 scripts/beatsnap.py DA [--max 0.15] [--lock t,…]`: dời điểm cắt B-roll + chuyển cảnh trùng điểm cắt về phách/nửa phách nhạc gần nhất (±0.15 s), giữ chữ theo lời. `--lock` các mốc không được dời (vd mép đoạn chỉ lấy voice). Chạy sau khi chốt edit.json, trước base.
+- `audio.music` nhận tên trong bộ nhạc (mix.py `MUSIC_LIB`, tự tải Mixkit, tự cân độ to về bài mặc định + chỉnh riêng từng bài để có lời nhạc ~15 dB dưới giọng, drop tự đặt): `life_is_a_dream` (mặc định) · `raising_me_higher` (quảng cáo/ra mắt, 110 BPM) · `motivating_mornings` (tiến độ/dự án, 121 BPM) · `smile` (review nhà/lô đất, 75 BPM) · `a_new_life` (cao trào/sang trọng, 128 BPM).

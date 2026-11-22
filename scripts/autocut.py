@@ -18,6 +18,34 @@ def ranges(s):
 def norm(w):
     return re.sub(r'[^\w]', '', w.lower())
 
+def zoom_boxes(src, keep, info, z, head_y, n=3):
+    """Khung cận cho từng đoạn giữ lại: tâm ngang = tâm người, đỉnh đầu ở head_y của khung (anh Vũ 22/11: người nói to hơn trong khung)."""
+    from matte import RVM, head_point
+    from common import Reader
+    import numpy as np
+    W0, H0 = info['w'], info['h']
+    if W0 / H0 > 9 / 16 + 0.01: W0f = H0 * 9 / 16
+    else: W0f = W0
+    cw = int(W0f / z) // 2 * 2; ch = int(cw * 16 / 9) // 2 * 2
+    pw = 384; ph = int(round(H0 * pw / W0 / 2) * 2); m = RVM(); out = []; last = None
+    for s, e in keep:
+        xs, ys = [], []
+        for k in range(n):
+            t = s + (e - s) * (k + 0.5) / n
+            r = Reader(src, pw, ph, ss=t); f = r.read(); r.close()
+            if f is None: continue
+            m.reset()
+            for _ in range(3): al = m(f, 0.5)
+            hp = head_point(al)
+            if hp: xs.append(hp[0]); ys.append(hp[1])
+        if xs: last = (float(np.median(xs)), float(np.median(ys)))
+        cx, top = last if last else (0.5, 0.3)
+        x = int(min(max(cx * W0 - cw / 2, 0), W0 - cw)) // 2 * 2
+        y = int(min(max(top * H0 - head_y * ch, 0), H0 - ch)) // 2 * 2
+        out.append((x, y, cw, ch))
+    print(f'· cận ×{z}: khung {cw}×{ch} bám người theo {len(out)} đoạn')
+    return out
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('src'); ap.add_argument('da')
@@ -28,6 +56,8 @@ def main():
     ap.add_argument('--no-fillers', action='store_true', help='KHÔNG bỏ từ đệm (ờ, ừm…)')
     ap.add_argument('--no-cut', action='store_true', help='không cắt gì, chỉ cắt khung')
     ap.add_argument('--crop-x', type=float, default=None, help='ép tâm ngang khung (0..1)')
+    ap.add_argument('--zoom', type=float, default=1.0, help='cận người nói: cắt khung nhỏ hơn Z lần từ nguồn (nguồn đủ lớn thì vẫn nét), bám người theo từng đoạn')
+    ap.add_argument('--head-y', type=float, default=0.36, help='với --zoom: đỉnh đầu nằm ở tỉ lệ này của khung (chừa chỗ chữ phía trên)')
     ap.add_argument('--hq', action='store_true', help='mã hoá chất lượng cao hơn (chậm)')
     a = ap.parse_args()
     info = probe(a.src)
@@ -122,10 +152,14 @@ def main():
     fc.append(f'[vc]{vf},fps=30,format=yuv420p[vo]')
     out = os.path.join(a.da, 'cut.mp4')
     lst = os.path.join(a.da, 'cut_parts.txt'); names = []
+    zb = None
+    if a.zoom > 1.01 and a.ratio == '9:16':
+        zb = zoom_boxes(a.src, keep, info, a.zoom, a.head_y)
     for i, (s, e) in enumerate(keep):
         d = e - s; pn = os.path.join(a.da, f'_part{i}.mov'); names.append(pn)
+        vfi = vf if zb is None else f'crop={zb[i][2]}:{zb[i][3]}:{zb[i][0]}:{zb[i][1]},scale={W}:{H}:flags=lanczos'
         run(['ffmpeg', '-nostdin', '-v', 'error', '-y', '-ss', str(s), '-i', a.src, '-t', f'{d:.3f}',
-             '-vf', f'{vf},fps=30,format=yuv420p', '-af', f'afade=t=in:d=0.01,afade=t=out:st={max(0, d-0.01):.3f}:d=0.01',
+             '-vf', f'{vfi},fps=30,format=yuv420p', '-af', f'afade=t=in:d=0.01,afade=t=out:st={max(0, d-0.01):.3f}:d=0.01',
              '-c:v', 'libx264', '-preset', 'fast', '-crf', '16', '-c:a', 'pcm_s16le', pn])
     open(lst, 'w').write(''.join(f"file '{n}'\n" for n in names))
     run(['ffmpeg', '-nostdin', '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', out])

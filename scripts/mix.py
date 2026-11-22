@@ -2,7 +2,7 @@
   python mix.py DA [--video DA/fx.mp4] [--out DA/final.mp4]
 Cấu hình trong ads.json → "audio" (reference/schema.md). Thiếu file SFX → tự tổng hợp whoosh/hit/shimmer (không bản quyền).
 """
-import argparse, os, subprocess, wave
+import argparse, json, os, re, subprocess, wave
 import numpy as np
 from common import load_json, probe, die
 
@@ -25,6 +25,34 @@ SFX_LIB = {'pop_punch': -19.0, 'boom_tail': -20.3, 'swipe': -18.9, 'riser_hit': 
            'bubble': -30.0, 'puff': -23.8, 'thock': -27.2}
 def sfx_path(f):
     return os.path.join(SFX_DIR, f + '.wav') if f in SFX_LIB else f
+
+MUSIC_REF_LUFS = -11.6   # độ to bài mặc định Life is a Dream — bài khác tự cân về mức này để music_gain giữ nguyên ý nghĩa
+# Bộ nhạc nền Mixkit (miễn phí bản quyền, tự tải về ~/.realcut/music — không lưu trong kho) · anh Vũ duyệt 22/11/2026
+# tên: (id Mixkit, giây drop trong bài, chỉnh mức dB sau khi cân LUFS để có lời nhạc vẫn ~15 dB dưới giọng, mood)
+MUSIC_LIB = {
+    'life_is_a_dream':     (837, 8.1, 0.0, 'mặc định · ấm, sáng, 120 BPM'),
+    'raising_me_higher':   (34, 2.1, -2.5, 'quảng cáo / ra mắt · sôi động, 110 BPM'),
+    'motivating_mornings': (33, 12.1, -3.0, 'tiến độ / dự án · chắc, đều, 121 BPM'),
+    'smile':               (1076, 0.85, 0.0, 'review nhà, lô đất · ấm, nhẹ, 75 BPM'),
+    'a_new_life':          (543, 24.8, 3.5, 'cao trào / sang trọng · dâng dần, 128 BPM'),
+}
+def music_lib(name):
+    mid = MUSIC_LIB[name][0]
+    mp = os.path.join(os.path.expanduser('~'), '.realcut', 'music', f'mixkit_{mid}_{name}.mp3')
+    if not os.path.exists(mp) or os.path.getsize(mp) < 100000:
+        os.makedirs(os.path.dirname(mp), exist_ok=True)
+        subprocess.run(['curl', '-sL', '-m', '120', '-o', mp, f'https://assets.mixkit.co/music/{mid}/{mid}.mp3'])
+    return mp
+
+def track_lufs(path):
+    cp = os.path.join(os.path.expanduser('~'), '.realcut', 'music', 'lufs.json'); c = load_json(cp, {})
+    k = f'{os.path.abspath(path)}|{os.path.getsize(path)}'
+    if k not in c:
+        r = subprocess.run(['ffmpeg', '-hide_banner', '-i', path, '-af', 'ebur128', '-f', 'null', '-'], capture_output=True, text=True).stderr
+        m = re.findall(r'I:\s+(-?[\d.]+) LUFS', r); c[k] = float(m[-1]) if m else MUSIC_REF_LUFS
+        try: os.makedirs(os.path.dirname(cp), exist_ok=True); json.dump(c, open(cp, 'w'), indent=1)
+        except Exception: pass
+    return c[k]
 
 def decode(path, sr=22050):
     b = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-ac', '1', '-ar', str(sr), '-f', 's16le', '-'], capture_output=True).stdout
@@ -122,7 +150,13 @@ def main():
             if 'drop' not in cfg and hk: cfg['drop'] = {'track': 8.1, 'video': hk['price_t'] + float(hk.get('count', 0) or 0)}
             print('  · nhạc mặc định: Life is a Dream (Mixkit)')
         else: print('  ⚠ không tải được nhạc mặc định — xuất không nhạc')
-    elif cfg.get('music') is False: cfg = dict(cfg); cfg.pop('music')   # "music": false = không nhạc
+    elif cfg.get('music') is False: cfg = dict(cfg); cfg.pop('music')
+    elif cfg.get('music') in MUSIC_LIB:          # "music": "smile" … → tự tải, drop & mức theo bộ nhạc
+        nm = cfg['music']; cfg = dict(cfg); cfg['music'] = music_lib(nm); _, dtr, trim, _ = MUSIC_LIB[nm]
+        hk = A.get('hook')
+        if 'drop' not in cfg and hk: cfg['drop'] = {'track': dtr, 'video': hk['price_t'] + float(hk.get('count', 0) or 0)}
+        elif 'drop' not in cfg: cfg['music_in'] = max(0.0, dtr - 0.5)
+        cfg['music_trim_db'] = cfg.get('music_trim_db', trim)   # "music": false = không nhạc
     vid = a.video or os.path.join(a.da, 'fx.mp4')
     if not os.path.exists(vid): die(f'Không thấy {vid} — chạy `fx` trước')
     out = a.out or os.path.join(a.da, 'final.mp4')
@@ -193,7 +227,7 @@ def main():
         if 'drop' in cfg:                     # {"track": giây drop trong bài, "video": giây cần drop}
             mi = cfg['drop']['track'] - cfg['drop']['video']
         inputs += ['-ss', f'{max(0, mi):.3f}', '-i', cfg['music']]
-        g = cfg.get('music_gain', MUSIC_GAIN); endt = A.get('end', {}).get('t', dur)   # mặc định MUSIC_GAIN (anh Vũ chốt 22/11)
+        g = cfg.get('music_gain', MUSIC_GAIN) * 10 ** ((MUSIC_REF_LUFS - track_lufs(cfg['music']) + cfg.get('music_trim_db', 0)) / 20); endt = A.get('end', {}).get('t', dur)   # mặc định MUSIC_GAIN (anh Vũ chốt 22/11)
         vol = f"if(lt(t,{endt}),{g},{g}+0.30*min(1,(t-{endt})/0.8))"
         pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
         if pg and 'drop' in cfg:
