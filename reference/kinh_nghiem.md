@@ -40,4 +40,4 @@ Theo câu kết trong kịch bản; hotline ~2 s để kịp chụp màn hình; 
 - Đồ hoạ phối cảnh không được làm sai tỉ lệ (dài 15 phải trông dài hơn ngang 10).
 
 ## Mức âm (anh Vũ chốt 22/11/2026)
-- Theo video quảng cáo mẫu anh gửi: giọng ≈ −14 LUFS, nhạc nền + hiệu ứng (stem no_vocals) thấp hơn giọng ~13 dB. Mặc định script: `MUSIC_GAIN 0.445`, `SFX_GAIN_DB +11` (mix.py). Đổi mức thì đo lại: `demucs --two-stems=vocals` rồi ebur128 từng stem.
+- Khớp video quảng cáo mẫu anh gửi (đo stem demucs + ebur128): giọng ≈ −13.8 LUFS, nhạc + hiệu ứng ≈ −27.5 LUFS (M50 ≈ −30, M95 ≈ −21.5), tổng ≈ −13.5 LUFS. Mặc định mix.py: `MUSIC_GAIN 0.545`, `SFX_GAIN_DB +15`, `VOICE_RATIO 2.0` (nén giọng nhẹ), `LUFS −13.7`. Đổi mức thì đo lại: `demucs --two-stems=vocals` rồi ebur128 từng stem.

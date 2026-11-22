@@ -1,4 +1,4 @@
-"""realcut · tầng C — âm thanh: giọng (lọc + nén) + nhạc năng lượng (né giọng, drop trùng câu giá) + SFX thưa → loudnorm −14 LUFS.
+"""realcut · tầng C — âm thanh: giọng (lọc + nén) + nhạc năng lượng (né giọng, drop trùng câu giá) + SFX thưa → loudnorm −13.7 LUFS.
   python mix.py DA [--video DA/fx.mp4] [--out DA/final.mp4]
 Cấu hình trong ads.json → "audio" (reference/schema.md). Thiếu file SFX → tự tổng hợp whoosh/hit/shimmer (không bản quyền).
 """
@@ -9,9 +9,11 @@ from common import load_json, probe, die
 SR = 48000
 
 
-# Mức âm mặc định — anh Vũ chốt 22/11/2026 theo video quảng cáo mẫu: nhạc nền + hiệu ứng thấp hơn giọng ~13 dB (trước: ~26 dB)
-MUSIC_GAIN = 0.445
-SFX_GAIN_DB = 11.0
+# Mức âm mặc định — anh Vũ chốt 22/11/2026 theo video quảng cáo mẫu (đo stem demucs): giọng ≈ −13.8 LUFS, nhạc+hiệu ứng ≈ −27.5 LUFS (thấp hơn giọng ~13.5 dB), tổng −13.5
+MUSIC_GAIN = 0.545
+SFX_GAIN_DB = 15.0
+VOICE_RATIO = 2.0      # nén giọng nhẹ hơn → giọng còn nhấn nhá như video mẫu
+LUFS = -13.7
 
 def decode(path, sr=22050):
     b = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-ac', '1', '-ar', str(sr), '-f', 's16le', '-'], capture_output=True).stdout
@@ -169,7 +171,7 @@ def main():
     vc = cfg.get('voice_clarity', 0)          # 1 = giọng rõ hơn: bớt ù 250 Hz, sáng 3–5 kHz, nén chặt hơn (anh Vũ duyệt 21/11)
     veq = ('equalizer=f=250:t=q:w=1.0:g=-2.5,equalizer=f=3200:t=q:w=1.2:g=4,equalizer=f=5500:t=q:w=1.5:g=1.5,'
            'acompressor=threshold=-24dB:ratio=4:attack=4:release=100:makeup=3,') if vc else 'equalizer=f=3000:t=q:w=1.2:g=2,'
-    fc = ['[1:a]highpass=f=80,acompressor=threshold=-20dB:ratio=3:attack=5:release=120:makeup=2,'
+    fc = [f"[1:a]highpass=f=80,acompressor=threshold=-20dB:ratio={cfg.get('voice_ratio', VOICE_RATIO)}:attack=5:release=120:makeup=2,"
           + veq + f"volume={cfg.get('voice_db', 0)}dB,aresample=48000,apad" + (',asplit=2[vo][vsc]' if cfg.get('music') else '[vo]')]
     mix = ['[vo]']
     if cfg.get('music'):
@@ -177,7 +179,7 @@ def main():
         if 'drop' in cfg:                     # {"track": giây drop trong bài, "video": giây cần drop}
             mi = cfg['drop']['track'] - cfg['drop']['video']
         inputs += ['-ss', f'{max(0, mi):.3f}', '-i', cfg['music']]
-        g = cfg.get('music_gain', MUSIC_GAIN); endt = A.get('end', {}).get('t', dur)   # mặc định MUSIC_GAIN (anh Vũ chốt 22/11): nhạc + hiệu ứng thấp hơn giọng ~13 dB
+        g = cfg.get('music_gain', MUSIC_GAIN); endt = A.get('end', {}).get('t', dur)   # mặc định MUSIC_GAIN (anh Vũ chốt 22/11)
         vol = f"if(lt(t,{endt}),{g},{g}+0.30*min(1,(t-{endt})/0.8))"
         pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
         if pg and 'drop' in cfg:
@@ -198,7 +200,7 @@ def main():
         labels.append(f'[e{len(labels)}]')
     if labels:
         fc.append(''.join(labels) + f'amix=inputs={len(labels)}:normalize=0:dropout_transition=0[sfx]'); mix.append('[sfx]')
-    lufs = cfg.get('lufs', -14)
+    lufs = cfg.get('lufs', LUFS)
     fc.append(''.join(mix) + f'amix=inputs={len(mix)}:normalize=0:duration=first,loudnorm=I={lufs}:TP=-1.2:LRA=9,aresample=48000[aout]')
     cmd = ['ffmpeg', '-v', 'error', '-y'] + inputs + ['-filter_complex', ';'.join(fc), '-map', '0:v', '-map', '[aout]',
            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-movflags', '+faststart', '-t', f'{dur:.2f}', out]
