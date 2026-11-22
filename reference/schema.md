@@ -102,9 +102,9 @@ Mục nào không cần thì bỏ hẳn khoá đó.
  "audio": {
    "music": "music/nhac.mp3",          // BỎ TRỐNG = nhạc mặc định anh Vũ duyệt "Life is a Dream" (Mixkit 837, tự tải, drop tự đặt lúc chốt giá, pre_drop_gain 2.0) · false = không nhạc
    "drop": {"track": 15.84, "video": 3.38},   // giây drop trong bài → giây cần drop trong video (thường = price_t)
-   "music_gain": 0.12, "lufs": -14,         // mặc định 0.12 = nhạc nền thấp hơn giọng ~18 dB (anh Vũ chốt 21/11)          // nhạc dưới giọng ~8–9 LU là vừa · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
+   "music_gain": 0.445, "lufs": -14,        // mặc định 0.445 = nhạc + hiệu ứng thấp hơn giọng ~13 dB (anh Vũ chốt 22/11 theo video QC mẫu; đo bằng demucs) · "pre_drop_gain": 2.5 = nâng đoạn dạo trước drop
   
-   "sfx_auto": true,  "sfx_db": {"whoosh": -24, "hit": -17, "count": -17, "out": -27}, "ranh_db": -26,   // mức mặc định đã hạ, chỉ ghi khi cần đổi                   // whoosh ở transitions, hit ở giá + khung kết, shimmer ở offer (thưa ≥ 2.5 s)
+   "sfx_auto": true,  "sfx_db": {"whoosh": -24, "hit": -17, "count": -17, "out": -27}, "ranh_db": -26, "sfx_gain_db": 11,   // mức từng loại + sfx_gain_db cộng đồng loạt (mặc định +11 dB → hiệu ứng cùng mức nhạc nền); chỉ ghi khi cần đổi                   // whoosh ở transitions, hit ở giá + khung kết, shimmer ở offer (thưa ≥ 2.5 s)
    "sfx_lib": {"whoosh": "", "hit": "", "shimmer": ""},   // file riêng; trống → tự tổng hợp (không bản quyền)
    "sfx": [{"file": "sfx/tick.mp3", "t": 12.3, "db": -14}]
  }

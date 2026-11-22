@@ -8,6 +8,11 @@ from common import load_json, probe, die
 
 SR = 48000
 
+
+# Mức âm mặc định — anh Vũ chốt 22/11/2026 theo video quảng cáo mẫu: nhạc nền + hiệu ứng thấp hơn giọng ~13 dB (trước: ~26 dB)
+MUSIC_GAIN = 0.445
+SFX_GAIN_DB = 11.0
+
 def decode(path, sr=22050):
     b = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-ac', '1', '-ar', str(sr), '-f', 's16le', '-'], capture_output=True).stdout
     return np.frombuffer(b, np.int16).astype(np.float32) / 32768, sr
@@ -172,7 +177,7 @@ def main():
         if 'drop' in cfg:                     # {"track": giây drop trong bài, "video": giây cần drop}
             mi = cfg['drop']['track'] - cfg['drop']['video']
         inputs += ['-ss', f'{max(0, mi):.3f}', '-i', cfg['music']]
-        g = cfg.get('music_gain', 0.12); endt = A.get('end', {}).get('t', dur)   # anh Vũ chốt 21/11 (ERA City tiến độ): nhạc nền 0.12 ≈ thấp hơn giọng ~18 dB
+        g = cfg.get('music_gain', MUSIC_GAIN); endt = A.get('end', {}).get('t', dur)   # mặc định MUSIC_GAIN (anh Vũ chốt 22/11): nhạc + hiệu ứng thấp hơn giọng ~13 dB
         vol = f"if(lt(t,{endt}),{g},{g}+0.30*min(1,(t-{endt})/0.8))"
         pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
         if pg and 'drop' in cfg:
@@ -188,6 +193,7 @@ def main():
         if not os.path.exists(path): print('  ⚠ bỏ SFX thiếu file:', path); continue
         inputs += ['-i', path]
         st = max(0.0, t - (0 if os.path.basename(path).startswith(('ranh_', 'count_')) else peak_time(path))); ms = int(st * 1000)
+        db = db + cfg.get('sfx_gain_db', SFX_GAIN_DB)   # nâng/hạ đồng loạt mọi SFX (anh Vũ 22/11: hiệu ứng cùng mức nhạc nền)
         fc.append(f'[{n0 + len(labels)}:a]aresample=48000,volume={db}dB,adelay={ms}|{ms}[e{len(labels)}]')
         labels.append(f'[e{len(labels)}]')
     if labels:

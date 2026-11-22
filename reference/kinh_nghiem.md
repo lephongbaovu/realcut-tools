@@ -38,3 +38,6 @@ Theo câu kết trong kịch bản; hotline ~2 s để kịp chụp màn hình; 
 - Nhạc là nền: anh Vũ chỉnh nhỏ dần tới music_gain ~0.2; SFX phải nhẹ, không làm giật mình. Đổi nhạc: chọn Mixkit theo mood, tải https://assets.mixkit.co/music/<id>/<id>.mp3 (đã duyệt: 837 Life is a Dream).
 - Kiểm tra mức nhạc/giọng bằng số đo, không đoán: tách stem (demucs --two-stems=vocals) rồi đo LUFS từng stem.
 - Đồ hoạ phối cảnh không được làm sai tỉ lệ (dài 15 phải trông dài hơn ngang 10).
+
+## Mức âm (anh Vũ chốt 22/11/2026)
+- Theo video quảng cáo mẫu anh gửi: giọng ≈ −14 LUFS, nhạc nền + hiệu ứng (stem no_vocals) thấp hơn giọng ~13 dB. Mặc định script: `MUSIC_GAIN 0.445`, `SFX_GAIN_DB +11` (mix.py). Đổi mức thì đo lại: `demucs --two-stems=vocals` rồi ebur128 từng stem.
