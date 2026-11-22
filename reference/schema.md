@@ -152,5 +152,5 @@ Chỉ **2 kiểu chữ** cho cả video. Bỏ trống các khoá dưới là đ�
 - Cấp chữ: cấp 1 (3–5 ý đắt nhất) `size` 150, `sub_size` 64 · cấp 2 `size` 112, `sub_size` 56. Không quá ~20 chữ/70 s.
 - Thẻ chương làm tối nền (`dim` 0.55 mặc định); thẻ số không tối.
 - Liệt kê nhấn mạnh (vd NHÌN THẤY / CẢM NHẬN / TRẢI NGHIỆM): từng keyword `stack: true` + `x`, `y` riêng xếp **zigzag**, `size` 80, `pop` 0.2 (chữ to lên rồi hạ khi xuất hiện).
-- Khoá khác có sẵn: `x` (tâm ngang), `pop`, `y_sub` (dòng phụ nằm trên chữ lớn). Chỉ còn 2 chất liệu đã chốt (`gold_brushed`, `platinum_brushed`) — các chất liệu thử nghiệm khác đã gỡ.
+- Khoá khác có sẵn: `x` (tâm ngang), `pop`, `y_sub`, `strike` (giây gạch ngang chữ lớn bằng vạch vàng — vd móc "KHÔNG PHẢI giá 1 căn nhà phố") (dòng phụ nằm trên chữ lớn). Chỉ còn 2 chất liệu đã chốt (`gold_brushed`, `platinum_brushed`) — các chất liệu thử nghiệm khác đã gỡ.
 - Mẫu đầy đủ: `templates/tiendo_ads_example.json`.

@@ -444,7 +444,12 @@ class FX:
             if k.get('pop'):                        # pop: chữ to lên rồi hạ về cỡ gốc khi xuất hiện (như chốt giá)
                 pp = clamp((t - t0) / k.get('pop_d', 0.4)); sz = sz * (1 + float(k['pop']) * np.sin(np.pi * pp))
             kx = W * k.get('x', 0.5)                # x: tâm chữ theo tỉ lệ ngang (vd zigzag)
-            gline(img, main, 'display', sz, kx, by + (1 - a) * 10, op, (t - t0 - 0.12) / 0.7)
+            stt = k.get('strike')                   # strike: giây gạch ngang chữ lớn (vd "KHÔNG PHẢI giá 1 căn nhà phố")
+            st = ease((t - stt) / 0.22) if stt is not None else 0.0
+            gline(img, main, 'display', sz, kx, by + (1 - a) * 10, op * (1 - 0.4 * st), (t - t0 - 0.12) / 0.7)
+            if st > 0:
+                mw = G(main, 'display', sz)['w']
+                T.hline(img, kx - mw * 0.54, by - sz * 0.34, mw * 1.08 * st, max(6, int(sz * 0.07)), 'gold', op)
             if sub:                                 # dòng phụ: mặc định màu kem (chỉ chữ lớn mới vàng nhũ)
                 kk = ease((t - t0 - 0.15) / 0.25) * ko
                 sc = k.get('sub_color', self.A.get('sub_color', 'cream'))
