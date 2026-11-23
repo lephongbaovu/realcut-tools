@@ -232,6 +232,11 @@ def main():
         pg = cfg.get('pre_drop_gain')                # nâng phần dạo nhạc trước drop (dạo thường rất nhỏ) — giữ người xem 3 s đầu
         if pg and 'drop' in cfg:
             dv = cfg['drop']['video']; vol = f"({vol})*if(lt(t,{dv - 0.15:.2f}),{pg},1)"
+        stp = cfg.get('music_steps')                 # [[giây, dB], …] = nâng/hạ nhạc theo đoạn (chuyển mượt 0.3 s), vd [[0, 4], [5.3, -2]]
+        if stp:
+            stp = sorted(stp); a_ = [10 ** (d / 20) for _, d in stp]
+            env = f'{a_[0]:.4f}' + ''.join(f'+({a_[i] - a_[i - 1]:.4f})*clip((t-{stp[i][0]:.2f})/0.3,0,1)' for i in range(1, len(stp)))
+            vol = f"({vol})*({env})"
         fc.append(f"[2:a]atrim=0:{dur:.2f},asetpts=PTS-STARTPTS,aresample=48000,volume='{vol}':eval=frame,"
                   f"afade=t=in:d=0.25,afade=t=out:st={dur - 1.6:.2f}:d=1.6[mu]")
         fc.append(f"[mu][vsc]sidechaincompress=threshold={cfg.get('duck_threshold', DUCK_THRESHOLD)}:ratio={cfg.get('duck_ratio', DUCK_RATIO)}:attack=15:release=450:makeup=1[mud]")   # duck: nhạc lùi khi có giọng
