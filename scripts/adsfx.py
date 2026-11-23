@@ -473,6 +473,13 @@ class FX:
             kx = W * k.get('x', 0.5)                # x: tâm chữ theo tỉ lệ ngang (vd zigzag)
             stt = k.get('strike')                   # strike: giây gạch ngang chữ lớn (vd "KHÔNG PHẢI giá 1 căn nhà phố")
             st = ease((t - stt) / 0.22) if stt is not None else 0.0
+            if k.get('small'):                      # small: true = dòng chữ NHỎ đứng riêng (bạch kim xước, IN HOA giãn) tại x/y — vd zigzag xen to/nhỏ
+                SO = lambda key, d: k.get(key, self.A.get(key, d))
+                sf = SO('sub_font', 'semibold'); stx = main.upper(); trk = SO('sub_tracking', 0.24)
+                sp_ = G(stx, sf, fit(stx, sf, sz, W * k.get('max_w', 0.72)), mat=SO('sub_material', 'platinum_brushed'), tracking=trk)
+                T.over(img, sp_, kx + sz * 0.46 * trk - sp_['w'] / 2, by - sp_['base'] + (1 - a) * 8, op)
+                if not k.get('stack'): return
+                continue
             an = k.get('anim'); ad = k.get('anim_d', {'slam': 0.24, 'blur': 0.45, 'wipe': 0.5}.get(an, 0.4))
             if an: a = 1.0 if an in ('wipe', 'blur') else min(1.0, (t - t0) / 0.08); op = a * ko
             gline(img, main, 'display', sz, kx, by + ((1 - a) * 10 if not an else 0), op * (1 - 0.4 * st), (t - t0 - 0.12 - (ad if an else 0)) / 0.7,
