@@ -107,6 +107,23 @@ def tiles(z, x0, y0, x1, y1, src='bing'):
     if bad: print(f'  ⚠ {bad}/{len(fs)} ô ảnh vệ tinh không tải được')
     return im.crop((int(x0 - tx[0] * 256), int(y0 - ty[0] * 256), int(x1 - tx[0] * 256), int(y1 - ty[0] * 256)))
 
+def thumb_sprite(path, w, r=14, bd=4):
+    """ảnh nhỏ bo góc + viền vàng + bóng mềm → sprite RGB (dùng cho khung sơ đồ cạnh ghim)."""
+    im = Image.open(path).convert('RGB'); h = int(w * im.height / im.width)
+    a = np.asarray(im.resize((w, h), Image.LANCZOS), np.float32); P = 18
+    Wt, Ht = w + 2 * (bd + P), h + 2 * (bd + P); rgb = np.zeros((Ht, Wt, 3), np.float32); al = np.zeros((Ht, Wt), np.float32)
+    def rr(m, x0, y0, x1, y1, rad):
+        cv2.rectangle(m, (x0 + rad, y0), (x1 - rad, y1), 1, -1); cv2.rectangle(m, (x0, y0 + rad), (x1, y1 - rad), 1, -1)
+        for cx, cy in [(x0 + rad, y0 + rad), (x1 - rad, y0 + rad), (x0 + rad, y1 - rad), (x1 - rad, y1 - rad)]: cv2.circle(m, (cx, cy), rad, 1, -1, cv2.LINE_AA)
+    outer = np.zeros((Ht, Wt), np.float32); rr(outer, P, P, Wt - P - 1, Ht - P - 1, r + bd)
+    inner = np.zeros((Ht, Wt), np.float32); rr(inner, P + bd, P + bd, Wt - P - bd - 1, Ht - P - bd - 1, r)
+    sh = cv2.GaussianBlur(np.roll(outer, 6, 0), (0, 0), 7) * 0.55
+    rgb[:] = 0; al = np.maximum(sh, outer)
+    rgb[outer > 0] = (236, 196, 104)
+    sub = rgb[P + bd:P + bd + h, P + bd:P + bd + w]; mk = inner[P + bd:P + bd + h, P + bd:P + bd + w][..., None]
+    rgb[P + bd:P + bd + h, P + bd:P + bd + w] = sub * (1 - mk) + a * mk
+    return dict(rgb=rgb, a=np.clip(al, 0, 1), base=Ht, w=Wt, h=Ht, xoff=0)
+
 # ───────── một bản đồ ─────────
 class Map:
     def __init__(self, spec, cache, quiet=False):
@@ -251,6 +268,10 @@ class Map:
         self.hname = T.sprite(T.nfc(self.home_name.upper()), 'display', T.fit_size(self.home_name.upper(), 'display', 54, W * 0.7), 'gold', shadow=0.4) if self.home_name else None
         lab = self.s['home'].get('label')          # chữ nhỏ cạnh ghim, vd "Vị trí" (dùng khi bỏ thẻ tên)
         self.hlab = T.sprite(T.nfc(lab.upper()), 'semibold', 30, 'cream', tracking=0.24, shadow=0.7) if lab else None
+        th = self.s['home'].get('thumb')            # khung ảnh nhỏ (vd sơ đồ phân lô) thay chữ "Vị trí" cạnh ghim
+        if th:
+            self.hthumb = thumb_sprite(th, int(self.s['home'].get('thumb_w', 210))); self.hlab = None
+        else: self.hthumb = None
         self.hsub = T.sprite(T.nfc(self.s['home'].get('sub', '').upper()), 'semibold', 24, 'cream', tracking=0.22) if self.s['home'].get('sub') else None
         for it in self.items:
             ks = T.sprite(T.nfc(it['km']), 'display', 66, 'gold', shadow=0.35)
@@ -353,6 +374,14 @@ class Map:
                 _blend(img, lambda L: cv2.circle(L, (int(hx), int(hy)), int(14 + 70 * k), GOLD_HI, 3, cv2.LINE_AA), 0.7 * (1 - k) * e0)
             cv2.circle(img, (int(hx), int(hy)), 7, GOLD, -1, cv2.LINE_AA)
             pin = self.pin; T.over(img, pin, hx - pin['w'] / 2, hy - pin['h'] * 0.97 - (1 - e0) * 60, e0)
+            if getattr(self, 'hthumb', None):
+                el = T.ease_out((t - 0.3) / 0.45); tb = self.hthumb
+                side = self.s['home'].get('thumb_side') or ('left' if self.items and np.mean([it['pf'][0] for it in self.items]) > self.hf[0] else 'right')   # né phía có tuyến đường
+                lx = hx + pin['w'] * 0.5 + 12 if side == 'right' else hx - pin['w'] * 0.5 - 12 - tb['w']
+                ly = hy - pin['h'] * 0.6 - tb['h'] / 2
+                if lx + tb['w'] > SAFE[2] * W or lx < SAFE[0] * W:          # không đủ chỗ bên cạnh → đặt phía trên ghim
+                    lx = min(max(hx - tb['w'] / 2, SAFE[0] * W), SAFE[2] * W - tb['w']); ly = hy - pin['h'] - tb['h'] + 4
+                T.over(img, tb, lx, ly + (1 - el) * 10, el)
             if self.hlab:
                 el = T.ease_out((t - 0.35) / 0.4); lb = self.hlab
                 lx = hx + pin['w'] * 0.5 + 14
