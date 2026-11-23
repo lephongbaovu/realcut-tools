@@ -86,16 +86,18 @@ def world(lon, lat):                      # Web Mercator, đơn vị = cả th�
     s = math.sin(math.radians(max(-85, min(85, lat))))
     return (lon + 180) / 360, 0.5 - math.log((1 + s) / (1 - s)) / (4 * math.pi)
 
-def tiles(z, x0, y0, x1, y1):
-    """ghép ảnh vệ tinh Bing ở zoom z, vùng pixel (x0,y0)–(x1,y1); cache ~/.realcut/tiles"""
+def tiles(z, x0, y0, x1, y1, src='bing'):
+    """ghép ảnh vệ tinh (src 'bing' | 'google') ở zoom z, vùng pixel (x0,y0)–(x1,y1); cache ~/.realcut/tiles"""
     os.makedirs(TILES, exist_ok=True)
     tx = range(int(x0 // 256), int(x1 // 256) + 1); ty = range(int(y0 // 256), int(y1 // 256) + 1)
     def qk(x, y): return ''.join(str(((x >> i) & 1) | (((y >> i) & 1) << 1)) for i in range(z - 1, -1, -1))
     def get(xy):
-        x, y = xy; f = os.path.join(TILES, f'{z}_{x}_{y}.jpg')
+        x, y = xy; f = os.path.join(TILES, ('g' if src == 'google' else '') + f'{z}_{x}_{y}.jpg')
         for _ in range(2):
             if os.path.exists(f) and os.path.getsize(f) > 1000: break
-            open(f, 'wb').write(curl(f'https://ecn.t{(x + y) % 4}.tiles.virtualearth.net/tiles/a{qk(x, y)}.jpeg?g=1', 20))
+            url = (f'https://mt{(x + y) % 4}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}' if src == 'google'
+                   else f'https://ecn.t{(x + y) % 4}.tiles.virtualearth.net/tiles/a{qk(x, y)}.jpeg?g=1')
+            open(f, 'wb').write(curl(url, 20))
         return xy, f
     with ThreadPoolExecutor(12) as ex: fs = list(ex.map(get, [(x, y) for x in tx for y in ty]))
     im = Image.new('RGB', (len(tx) * 256, len(ty) * 256), (40, 44, 38)); bad = 0
@@ -131,10 +133,11 @@ class Map:
         self.note = spec.get('note') or self._note()
 
     def _note(self):
+        pv = 'Google Maps' if self.s.get('tiles') == 'google' else 'Bing Maps'
         srcs = {r[4].split(' · ')[0] for r in self.rows[1:]}
-        if srcs == {'anh đưa'}: return 'Ảnh vệ tinh: Bing Maps'
-        if any('OSRM' in s for s in srcs): return 'Ảnh vệ tinh: Bing Maps · Khoảng cách theo đường bộ (OSM)'
-        return 'Ảnh vệ tinh: Bing Maps · Khoảng cách đường chim bay'
+        if srcs == {'anh đưa'}: return f'Ảnh vệ tinh: {pv}'
+        if any('OSRM' in s for s in srcs): return f'Ảnh vệ tinh: {pv} · Khoảng cách theo đường bộ (OSM)'
+        return f'Ảnh vệ tinh: {pv} · Khoảng cách đường chim bay'
 
     def table(self):
         print(f'\n[{self.id}]  {self.t0:.2f}s → {self.t0 + self.d:.2f}s  ·  ghi chú: {self.note}')
@@ -168,7 +171,7 @@ class Map:
         X0 = (self.cw[0] + (-self.mx - self.bc[0]) / self.k) * n; Y0 = (self.cw[1] + (-self.my - self.bc[1]) / self.k) * n
         X1 = (self.cw[0] + (W + self.mx - self.bc[0]) / self.k) * n; Y1 = (self.cw[1] + (H + self.my - self.bc[1]) / self.k) * n
         print(f'  · ảnh vệ tinh zoom {zt} ({self.mpp:.1f} m/px) …', flush=True)
-        im = tiles(zt, X0, Y0, X1, Y1)
+        im = tiles(zt, X0, Y0, X1, Y1, self.s.get('tiles', 'bing'))
         cw, ch = int((W + 2 * self.mx) * self.q), int((H + 2 * self.my) * self.q)
         c = np.asarray(im.resize((cw, ch), Image.LANCZOS), np.float32)
         g = c.mean(2, keepdims=True); c = g + (c - g) * 0.78                  # bớt rực để vàng nổi
