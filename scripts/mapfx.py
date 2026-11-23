@@ -107,6 +107,10 @@ def tiles(z, x0, y0, x1, y1, src='bing'):
     if bad: print(f'  ⚠ {bad}/{len(fs)} ô ảnh vệ tinh không tải được')
     return im.crop((int(x0 - tx[0] * 256), int(y0 - ty[0] * 256), int(x1 - tx[0] * 256), int(y1 - ty[0] * 256)))
 
+def _scale_sprite(sp, k):
+    w, h = max(2, int(sp['w'] * k)), max(2, int(sp['h'] * k))
+    return dict(rgb=cv2.resize(sp['rgb'], (w, h), interpolation=cv2.INTER_AREA), a=cv2.resize(sp['a'], (w, h), interpolation=cv2.INTER_AREA), w=w, h=h, base=h, xoff=0)
+
 def thumb_sprite(path, w, r=14, bd=4):
     """ảnh nhỏ bo góc + viền vàng + bóng mềm → sprite RGB (dùng cho khung sơ đồ cạnh ghim)."""
     im = Image.open(path).convert('RGB'); h = int(w * im.height / im.width)
@@ -259,6 +263,36 @@ class Map:
                     if best is None or sc < best[0]: best = (sc, r)
             it['off_z'] = (best[1][0] - px, best[1][1] - py)
 
+    def thumb_vis(self, t):
+        """0→1: khung sơ đồ bung ra từ ghim (0.35 s, nảy nhẹ), giữ, rồi thu về ghim (0.3 s). Lịch: home.thumb_t = [[t0, t1], …] (giây trong bản đồ)."""
+        if not getattr(self, 'hthumb', None): return 0.0
+        v = 0.0
+        for a, b in self.s['home'].get('thumb_t', []):
+            if a <= t <= b: v = max(v, min(1.0, (t - a) / 0.35), 0) if t < b - 0.3 else max(v, (b - t) / 0.3)
+        return max(0.0, min(1.0, v))
+    def thumb_back(self, t):                      # nhịp nảy của ghim khi bật lại (0→1 trong 0.3 s sau khi khung thu về)
+        for a, b in self.s['home'].get('thumb_t', []):
+            if b <= t <= b + 0.3: return (t - b) / 0.3
+        return 0.0
+    def draw_thumb(self, img, hx, hy, v):
+        tb = self.hthumb
+        k = 1 - (1 - v) ** 3; sc = k * (1 + 0.06 * math.sin(math.pi * v))
+        sp = _scale_sprite(tb, max(0.03, sc)); sp = dict(tb, **sp)
+        side = self.s['home'].get('thumb_pos', 'above')           # above | right | left — chọn phía không có tuyến đường
+        if side == 'above':                                       # bong bóng ngay trên mũi ghim, có đuôi nhọn chỉ xuống
+            cx = hx; cy = hy - 34 - (tb['h'] / 2) * sc
+            x0 = min(max(cx - sp['w'] / 2, SAFE[0] * W), SAFE[2] * W - sp['w']); y0 = cy - sp['h'] / 2
+            tri = np.array([[hx - 14 * sc, y0 + sp['h'] - 20 * sc], [hx + 14 * sc, y0 + sp['h'] - 20 * sc], [hx, hy - 4]], np.int32)
+        else:                                                     # bong bóng bên cạnh, đuôi nhọn chỉ ngang vào ghim
+            sg = 1 if side == 'right' else -1
+            cx = hx + sg * (30 + sp['w'] / 2); cy = hy - 10
+            x0 = min(max(cx - sp['w'] / 2, SAFE[0] * W), SAFE[2] * W - sp['w']); y0 = cy - sp['h'] / 2
+            ex = x0 + 20 * sc if sg > 0 else x0 + sp['w'] - 20 * sc
+            tri = np.array([[ex, cy - 14 * sc], [ex, cy + 14 * sc], [hx + sg * 4, hy - 2]], np.int32)
+        _blend(img, lambda L: cv2.fillConvexPoly(L, tri, GOLD, cv2.LINE_AA), min(1, v * 1.5))
+        T.over(img, sp, x0, y0, min(1, v * 1.5))
+        cv2.circle(img, (int(hx), int(hy)), 6, GOLD, -1, cv2.LINE_AA)
+
     def cam_at(self, t):
         i = min(len(self.cam) - 1, max(0, int(round(t * FPS)))); c = self.cam[i]; return (float(c[0]), float(c[1])), float(c[2])
 
@@ -373,15 +407,12 @@ class Map:
                 k = ((t + ph) % 1.6) / 1.6
                 _blend(img, lambda L: cv2.circle(L, (int(hx), int(hy)), int(14 + 70 * k), GOLD_HI, 3, cv2.LINE_AA), 0.7 * (1 - k) * e0)
             cv2.circle(img, (int(hx), int(hy)), 7, GOLD, -1, cv2.LINE_AA)
-            pin = self.pin; T.over(img, pin, hx - pin['w'] / 2, hy - pin['h'] * 0.97 - (1 - e0) * 60, e0)
-            if getattr(self, 'hthumb', None):
-                el = T.ease_out((t - 0.3) / 0.45); tb = self.hthumb
-                side = self.s['home'].get('thumb_side') or ('left' if self.items and np.mean([it['pf'][0] for it in self.items]) > self.hf[0] else 'right')   # né phía có tuyến đường
-                lx = hx + pin['w'] * 0.5 + 12 if side == 'right' else hx - pin['w'] * 0.5 - 12 - tb['w']
-                ly = hy - pin['h'] * 0.6 - tb['h'] / 2
-                if lx + tb['w'] > SAFE[2] * W or lx < SAFE[0] * W:          # không đủ chỗ bên cạnh → đặt phía trên ghim
-                    lx = min(max(hx - tb['w'] / 2, SAFE[0] * W), SAFE[2] * W - tb['w']); ly = hy - pin['h'] - tb['h'] + 4
-                T.over(img, tb, lx, ly + (1 - el) * 10, el)
+            tv = self.thumb_vis(t)                     # khung sơ đồ đang hiện → ẩn ghim, xong bật ghim lại
+            pin = self.pin; pe = e0 * (1 - min(1, tv * 1.6)); pb = 1 + 0.25 * math.sin(math.pi * min(1, max(0, self.thumb_back(t))))
+            if pe > 0.01:
+                ps = pin if pb == 1 else dict(pin, **_scale_sprite(pin, pb))
+                T.over(img, ps, hx - ps['w'] / 2, hy - ps['h'] * 0.97 - (1 - e0) * 60, pe)
+            if tv > 0.001: self.draw_thumb(img, hx, hy, tv)
             if self.hlab:
                 el = T.ease_out((t - 0.35) / 0.4); lb = self.hlab
                 lx = hx + pin['w'] * 0.5 + 14
