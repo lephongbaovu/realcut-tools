@@ -23,7 +23,15 @@ DUCK_THRESHOLD = 0.03
 SFX_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'sfx')
 SFX_LIB = {'pop_punch': -19.0, 'boom_tail': -20.3, 'swipe': -18.9, 'riser_hit': -20.8, 'shimmer_soft': -18.1,
            'bubble': -30.0, 'puff': -23.8, 'thock': -27.2}
+SFX_USER = {'tinh_tien': -17.2, 'apple_pay': -8.5}   # tiếng anh Vũ cung cấp (tiengdong.com): tính tiền = chốt giá · apple pay = "tăng giá" (mua sỉ, tăng trưởng)
+SFX_LIB.update(SFX_USER)
+USER_DIRS = [os.path.join(os.path.expanduser('~'), '.realcut', 'sfx_user'), os.path.join(os.path.dirname(SFX_DIR), 'sfx_user')]
 def sfx_path(f):
+    if f in SFX_USER:
+        for d in USER_DIRS:
+            for ext in ('.mp3', '.wav'):
+                if os.path.exists(os.path.join(d, f + ext)): return os.path.join(d, f + ext)
+        return os.path.join(USER_DIRS[0], f + '.mp3')        # thiếu file → mix báo "bỏ SFX thiếu file"
     return os.path.join(SFX_DIR, f + '.wav') if f in SFX_LIB else f
 
 MUSIC_REF_LUFS = -11.6   # độ to bài mặc định Life is a Dream — bài khác tự cân về mức này để music_gain giữ nguyên ý nghĩa
@@ -192,7 +200,10 @@ def main():
         return pth
     rdb = cfg.get('ranh_db', -26)
     hk = A.get('hook')
-    if hk and hk.get('count') and cfg.get('sfx_auto', True):    # giá chạy số: tiếng đếm + chốt chuông (thay tiếng hit)
+    tt = sfx_path('tinh_tien')
+    if hk and hk.get('count') and cfg.get('price_sfx', 'tinh_tien') == 'tinh_tien' and os.path.exists(tt):   # anh Vũ chốt 23/11: giá = tiếng máy tính tiền, "ting" rơi đúng lúc số chốt
+        keep.append((tt, hk['price_t'] + float(hk['count']), cfg.get('sfx_db', {}).get('price', SFX_USER['tinh_tien'])))
+    elif hk and hk.get('count') and cfg.get('sfx_auto', True):    # giá chạy số: tiếng đếm + chốt chuông (thay tiếng hit)
         cp_ = os.path.join(sfxd, f"count_{float(hk['count']):.2f}.wav")
         if not os.path.exists(cp_): synth_count(cp_, float(hk['count']), n=max(18, int(float(hk['count']) * 16)))
         keep.append((cp_, hk['price_t'], cfg.get('sfx_db', {}).get('count', -17)))
@@ -220,7 +231,7 @@ def main():
     veq = ('highpass=f=100,equalizer=f=250:t=q:w=1.0:g=-2.5,equalizer=f=3200:t=q:w=1.2:g=3,equalizer=f=5000:t=q:w=1.5:g=2.5,treble=g=3:f=8000:t=s:w=0.6,'
            'deesser=i=0.4:m=0.5:f=0.5,') if vc else 'equalizer=f=3000:t=q:w=1.2:g=2,'
     fc = [f"[1:a]highpass=f=80,acompressor=threshold=-20dB:ratio={cfg.get('voice_ratio', VOICE_RATIO)}:attack=5:release=120:makeup=2,"
-          + veq + f"volume={cfg.get('voice_db', 0)}dB,aresample=48000,apad" + (',asplit=2[vo][vsc]' if cfg.get('music') else '[vo]')]
+          + veq + f"volume={cfg.get('voice_db', 0)}dB,aresample=48000,apad,atrim=0:{dur:.2f}" + (',asplit=2[vo][vsc]' if cfg.get('music') else '[vo]')]
     mix = ['[vo]']
     if cfg.get('music'):
         mi = cfg.get('music_in', 0.0)
@@ -254,6 +265,15 @@ def main():
     if labels:
         fc.append(''.join(labels) + f'amix=inputs={len(labels)}:normalize=0:dropout_transition=0[sfx]'); mix.append('[sfx]')
     lufs = cfg.get('lufs', LUFS)
+    ST = os.environ.get('REALCUT_STEM')          # levels.py: xuất riêng từng lớp (voice|music|sfx), không loudnorm, để đo
+    if ST:
+        sel = {'voice': ['[vo]'], 'music': ['[mud]'], 'sfx': ['[sfx]']}.get(ST, mix); sel = [x for x in sel if x in mix] or mix[:1]
+        for x in mix:
+            if x not in sel: fc.append(x + 'anullsink')
+        fc.append((sel[0] + 'anull,' if len(sel) == 1 else ''.join(sel) + f'amix=inputs={len(sel)}:normalize=0:duration=first,') + 'aresample=48000[aout]')
+        json.dump([[round(t, 2), os.path.basename(str(f))] for f, t, _ in keep], open(out + '.events.json', 'w'))
+        cmd = ['ffmpeg', '-v', 'error', '-y'] + inputs + ['-filter_complex', ';'.join(fc), '-map', '[aout]', '-c:a', 'pcm_s16le', '-t', f'{dur:.2f}', out]
+        subprocess.run(cmd, check=True); return
     fc.append(''.join(mix) + f'amix=inputs={len(mix)}:normalize=0:duration=first,loudnorm=I={lufs}:TP=-1.2:LRA=9,aresample=48000[aout]')
     cmd = ['ffmpeg', '-v', 'error', '-y'] + inputs + ['-filter_complex', ';'.join(fc), '-map', '0:v', '-map', '[aout]',
            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-movflags', '+faststart', '-t', f'{dur:.2f}', out]

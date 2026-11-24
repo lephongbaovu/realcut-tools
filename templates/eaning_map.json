@@ -1,0 +1,74 @@
+{
+ "_ghi_chu": "Ví dụ thật ĐẤT NỀN đã duyệt (15 lô Ea Ning 450tr, final v5, 24/11/2026) — tham khảo, không phải khuôn. Đường dẫn file là của phiên dựng đó.",
+ "maps": [
+  {
+   "id": "MAP1",
+   "t": 20.6,
+   "d": 10.24,
+   "tiles": "google",
+   "home": {
+    "name": "",
+    "label": "Vị trí",
+    "at": "12.633029, 108.220984",
+    "thumb": "/home/claude/eaning/thumb_lo.jpg",
+    "thumb_w": 300,
+    "thumb_t": [
+     [
+      7.4,
+      9.6
+     ]
+    ],
+    "thumb_pos": "right"
+   },
+   "zoom": 3.0,
+   "items": [
+    {
+     "name": "Nút giao cao tốc KH – BMT",
+     "t": 21.12,
+     "at": "12.655168, 108.222483",
+     "km": "Hơn 2 km"
+    },
+    {
+     "name": "Trung tâm xã Ea Ning",
+     "t": 24.04,
+     "at": "12.609709, 108.209276",
+     "km": "Hơn 2 km"
+    }
+   ],
+   "rings": [
+    3
+   ],
+   "dist": "road"
+  },
+  {
+   "id": "MAP2",
+   "t": 47.96,
+   "d": 5.38,
+   "tiles": "google",
+   "home": {
+    "name": "",
+    "label": "Vị trí",
+    "at": "12.633029, 108.220984",
+    "thumb": "/home/claude/eaning/thumb_lo.jpg",
+    "thumb_w": 300,
+    "thumb_t": [
+     [
+      0.25,
+      1.55
+     ]
+    ],
+    "thumb_pos": "above"
+   },
+   "zoom": 3.0,
+   "items": [
+    {
+     "name": "Thác Dray Dăng",
+     "t": 50.14,
+     "at": "12.636671, 108.229351",
+     "km": 0.7
+    }
+   ],
+   "dist": "road"
+  }
+ ]
+}

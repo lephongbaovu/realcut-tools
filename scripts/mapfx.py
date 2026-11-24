@@ -154,7 +154,7 @@ class Map:
         self.note = spec.get('note') or self._note()
 
     def _note(self):
-        pv = 'Google Maps' if self.s.get('tiles') == 'google' else 'Bing Maps'
+        pv = 'Bing Maps' if self.s.get('tiles') == 'bing' else 'Google Maps'
         srcs = {r[4].split(' · ')[0] for r in self.rows[1:]}
         if srcs == {'anh đưa'}: return f'Ảnh vệ tinh: {pv}'
         if any('OSRM' in s for s in srcs): return f'Ảnh vệ tinh: {pv} · Khoảng cách theo đường bộ (OSM)'
@@ -192,7 +192,7 @@ class Map:
         X0 = (self.cw[0] + (-self.mx - self.bc[0]) / self.k) * n; Y0 = (self.cw[1] + (-self.my - self.bc[1]) / self.k) * n
         X1 = (self.cw[0] + (W + self.mx - self.bc[0]) / self.k) * n; Y1 = (self.cw[1] + (H + self.my - self.bc[1]) / self.k) * n
         print(f'  · ảnh vệ tinh zoom {zt} ({self.mpp:.1f} m/px) …', flush=True)
-        im = tiles(zt, X0, Y0, X1, Y1, self.s.get('tiles', 'bing'))
+        im = tiles(zt, X0, Y0, X1, Y1, self.s.get('tiles', 'google'))
         cw, ch = int((W + 2 * self.mx) * self.q), int((H + 2 * self.my) * self.q)
         c = np.asarray(im.resize((cw, ch), Image.LANCZOS), np.float32)
         g = c.mean(2, keepdims=True); c = g + (c - g) * 0.78                  # bớt rực để vàng nổi

@@ -177,3 +177,37 @@ Quy tắc: tiếng nhấn chính (pop_punch/boom_tail/riser_hit/swipe/shimmer) *
 - `realcut.py cut … --zoom 1.6 --head-y 0.47`: cắt khung 1/1.6 từ nguồn (DJI 1728×3072 → đúng 1080×1920, không mất nét), bám người theo từng đoạn, đỉnh đầu ở 0.47 khung (chừa chỗ chữ phía trên). Chữ móc giá/zigzag đặt y ≤ 0.44.
 - `python3 scripts/beatsnap.py DA [--max 0.15] [--lock t,…]`: dời điểm cắt B-roll + chuyển cảnh trùng điểm cắt về phách/nửa phách nhạc gần nhất (±0.15 s), giữ chữ theo lời. `--lock` các mốc không được dời (vd mép đoạn chỉ lấy voice). Chạy sau khi chốt edit.json, trước base.
 - `audio.music` nhận tên trong bộ nhạc (mix.py `MUSIC_LIB`, tự tải Mixkit, tự cân độ to về bài mặc định + chỉnh riêng từng bài để có lời nhạc ~15 dB dưới giọng, drop tự đặt): `life_is_a_dream` (mặc định) · `raising_me_higher` (quảng cáo/ra mắt, 110 BPM) · `motivating_mornings` (tiến độ/dự án, 121 BPM) · `smile` (review nhà/lô đất, 75 BPM) · `a_new_life` (cao trào/sang trọng, 128 BPM).
+
+## 9 · Đồ hoạ bản đồ mở rộng + mặc định mới (anh Vũ chốt 24/11/2026 — đất nền 15 lô Ea Ning, final v5)
+Bản đồ: ảnh vệ tinh **Google** là mặc định (`"tiles": "bing"` mới quay lại Bing). Ghim BĐS: ghim vàng + vòng sáng loang ra.
+
+**`map.json` → `home`** (thêm):
+- `"thumb": "thumb_lo.jpg", "thumb_w": 300` — khung sơ đồ phân lô (ảnh sơ đồ anh gửi, cắt phần lô) **bung ra từ ghim rồi thu về, ghim nảy lại**; không hiện suốt.
+- `"thumb_t": [[7.4, 9.6]]` — giây (trong bản đồ) khung hiện: đúng câu anh nói về lô ("từ vị trí này", "đối diện với mình", "tiếp cận đầy đủ tiện ích"). `"thumb_pos": "above|right|left"` — chọn phía không có tuyến đường.
+
+**`DA/extras.json`** → `realcut.py extras DA [pair|ranh|zone|cards|all]` (chạy **sau** `map`; `map` chạy lại thì chạy lại `extras cards`):
+```json
+{
+ "thumb": "thumb_lo.jpg", "thumb_w": 300,
+ "pair": {"id": "sodo_ghep", "top": "<toàn cảnh.jpg>", "top_crop": [0.12, 0.43, 0.99, 0.995], "bottom": "<sơ đồ cận.jpg>", "labels": ["TOÀN CẢNH", "SƠ ĐỒ PHÂN LÔ"], "d": 8},
+ "ranh": {"id": "EANING", "xa": "Ea Ning", "map": "MAP1", "d": 2.65},
+ "zone": {"id": "QH1", "d": 7.98, "poly": ["12.63, 108.22", "…"], "home": "12.633029, 108.220984",
+          "image": "<phối cảnh.jpg>", "image_pts": [[x, y], [x, y], [x, y]], "poly_pts": [[0, 14], 10, 9],
+          "t_draw": [1.0, 2.9], "t_reveal": [3.25, 4.25], "thumb_t": [[0.4, 1.9]], "label": "PHỐI CẢNH MINH HOẠ"},
+ "cards": {"MAP1": [{"item": 0, "src": "nutgiao.jpg", "crop": [0, 380, 436, 625]}, {"item": 1, "src": "trungtam.mov", "in": 4.0, "t0": 5.5, "t1": 7.3, "stem": "elbow"}],
+           "MAP2": [{"item": 0, "src": "thac.mov", "in": 5.5}]}
+}
+```
+- `pair` → `broll_916/<id>.mp4` (8 s): nền than ấm, 2 khung viền vàng + nhãn nhỏ, trượt vào, đẩy chậm. Dùng ở câu nói số lô/diện tích; chữ đặt dải trên (y 0.25) không đè ảnh. Dùng 2 lần trong video thì lần 2 `"in": 4.3`.
+- `ranh` → ranh giới xã/phường (dữ liệu 2025, tự tải) line sáng chạy (tiếng ranh tự thêm) → **zoom liền mạch** vào lô, khung cuối trùng khít khung đầu bản đồ `map` → nối không thấy cắt. Đặt ngay sau câu trước đó (vd hết "…luôn ha"), keyword tên xã dải trên.
+- `zone` → khu quy hoạch trên vệ tinh: line sáng chạy ranh (tiếng ranh tự thêm, `t_draw` đúng câu "đối diện với mình…") → **vạch sáng quét từ đỉnh xuống, phối cảnh lộ ra trong ranh** (`t_reveal`, thêm `audio.sfx` shimmer_soft tại t + t_reveal[0]); ranh vẽ tay theo bản vẽ quy hoạch (`poly` lat,lon) — canh cạnh ranh theo đường hiện hữu trên vệ tinh, đường giữa phối cảnh khớp đường thật; `image_pts` = 3 điểm trên ảnh phối cảnh ↔ `poly_pts` (chỉ số đỉnh, hoặc [i, j] = trung điểm). Luôn ghi "PHỐI CẢNH MINH HOẠ".
+- `cards` → thẻ ảnh/video **bật ra từ điểm đến đúng lúc đường đi chạy tới** (sóng toả ở điểm, nảy nhẹ, vệt sáng chạy viền, dây nối vàng; tự tìm chỗ không che đường/ghim/thẻ km; dây cắt ngang → tự gấp khúc), thu về trước khi đường kế tiếp chạy. `t0/t1` bỏ trống = tự tính; ảnh dọc thì `crop` lấy phần 16:9.
+
+**Âm thanh mới** (`mix`): `tinh_tien` (tiếng máy tính tiền — mọi chỗ **giá**: móc giá tự thêm lúc số chốt, giá nhắc lại ở đoạn kết thêm `{"file": "tinh_tien", "t": …}`), `apple_pay` (kiểu "tăng giá" — mua sỉ, tăng trưởng bền vững…). File anh Vũ cung cấp, đặt ở `~/.realcut/sfx_user/` (thiếu → hỏi anh gửi lại). `audio.music_steps: [[0, 4], [5.3, -2]]` = nâng/hạ nhạc theo đoạn (dB, chuyển 0.3 s).
+
+**Đo âm**: `realcut.py levels DA [--video fx_draft.mp4]` → `qc/levels.txt`: nhạc dưới giọng từng 10 s, từng SFX dưới giọng bao nhiêu dB (cờ ⚠ to/chìm). Bản đã chốt Ea Ning: nhạc ~15–17 dB dưới giọng, whoosh 4–8 dB, tiếng nhấn/giá 6–10 dB.
+
+**Storyboard**: `realcut.py storyboard DA` → `storyboard.xlsx` (mỗi cảnh 1 dòng: giây · lời · hình nền · chữ · đồ hoạ · âm thanh · ảnh · cột ANH SỬA) + `storyboard.jpg`. Anh sửa xong gửi lại → `storyboard DA --read <file>` in các ô anh đổi → cập nhật json rồi mới `base`.
+
+**Chữ đoạn kết (zigzag xen to/nhỏ)**: ý chính chữ lớn vàng (giá, FULL THỔ CƯ), ý phụ `"small": true` (chữ nhỏ bạch kim, vd 5×30, BÊ TÔNG 6M); tiếng chỉ ở dòng lớn (giá = tinh_tien, ý chốt = boom_tail); dòng nhỏ không tiếng.
+**Móc giá**: số chạy từ đầu câu giá, chốt ngay trước khi anh đọc con số (`count` ≈ 0.7 s), `"pop": 0.18, "pop_d": 0.9` → chữ to lên đúng lúc đọc số, hạ xuống ở chữ đơn vị ("triệu"), `out` ngay sau câu.

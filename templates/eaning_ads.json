@@ -1,0 +1,298 @@
+{
+ "_ghi_chu": "Ví dụ thật ĐẤT NỀN đã duyệt (15 lô Ea Ning 450tr, final v5, 24/11/2026) — tham khảo, không phải khuôn. Đường dẫn file là của phiên dựng đó.",
+ "brand": {
+  "name": "Đất nền Ea Ning",
+  "hotline": "0949.435.499"
+ },
+ "hook": {
+  "price": "450 TRIỆU",
+  "price_t": 9.66,
+  "price_size": 150,
+  "price_y": 0.3,
+  "behind_until": 9.66,
+  "out": 11.75,
+  "tag": "GIÁ CHỈ",
+  "tag_t": 9.66,
+  "tag_y": 0.215,
+  "specs_y": 0.335,
+  "dim": 0,
+  "count": 0.74,
+  "pop": 0.18,
+  "pop_d": 0.9
+ },
+ "keywords": [
+  {
+   "t0": 0.15,
+   "t1": 2.95,
+   "main": "ĐƯỜNG BÊ TÔNG",
+   "sub": "đang thi công",
+   "pos": "top",
+   "size": 150,
+   "sub_size": 64
+  },
+  {
+   "t0": 4.1,
+   "t1": 5.22,
+   "main": "LỘ GIỚI 6M",
+   "pos": "top",
+   "size": 150,
+   "anim": "slam",
+   "sfx": "pop_punch"
+  },
+  {
+   "t0": 8.2,
+   "t1": 9.55,
+   "main": "CHỈ CÒN 15 LÔ",
+   "sub": "đã bán 15/30 lô",
+   "pos": "low",
+   "y": 0.25,
+   "size": 112,
+   "sub_size": 56,
+   "anim": "blur"
+  },
+  {
+   "t0": 12.15,
+   "t1": 13.85,
+   "main": "5 × 30",
+   "sub": "ngang 5m · dài 30m",
+   "pos": "low",
+   "y": 0.25,
+   "size": 150,
+   "sub_size": 56,
+   "anim": "blur"
+  },
+  {
+   "t0": 13.9,
+   "t1": 14.98,
+   "main": "FULL THỔ CƯ",
+   "pos": "low",
+   "y": 0.25,
+   "size": 150,
+   "anim": "blur"
+  },
+  {
+   "t0": 15.4,
+   "t1": 17.75,
+   "main": "MUA SỈ",
+   "sub": "làm việc trực tiếp với chủ",
+   "pos": "top",
+   "size": 150,
+   "sub_size": 56,
+   "anim": "wipe"
+  },
+  {
+   "t0": 18.1,
+   "t1": 20.5,
+   "main": "EA NING",
+   "pos": "low",
+   "size": 170,
+   "anim": "blur",
+   "y": 0.22,
+   "sub": "vị trí thuộc xã",
+   "sub_size": 56
+  },
+  {
+   "t0": 33.95,
+   "t1": 36.6,
+   "main": "TỈNH LỘ 10B",
+   "sub": "cách khoảng 100m",
+   "pos": "low",
+   "size": 150,
+   "sub_size": 56,
+   "anim": "slam",
+   "y": 0.25
+  },
+  {
+   "t0": 38.5,
+   "t1": 39.78,
+   "main": "BỀN VỮNG",
+   "sub": "tăng trưởng",
+   "pos": "top",
+   "size": 112,
+   "sub_size": 56,
+   "anim": "wipe"
+  },
+  {
+   "t0": 43.24,
+   "t1": 44.89,
+   "main": "CHỢ ĐẦU MỐI",
+   "sub": "nông sản · logistics",
+   "pos": "low",
+   "y": 0.25,
+   "size": 112,
+   "sub_size": 56,
+   "anim": "blur"
+  },
+  {
+   "t0": 46.36,
+   "t1": 47.84,
+   "main": "66,8 HA",
+   "sub": "quy mô",
+   "pos": "low",
+   "y": 0.265,
+   "size": 150,
+   "sub_size": 64,
+   "anim": "slam",
+   "sfx": "pop_punch"
+  },
+  {
+   "t0": 53.94,
+   "t1": 58.24,
+   "main": "450 TRIỆU",
+   "size": 124,
+   "y": 0.205,
+   "x": 0.45,
+   "stack": true,
+   "pos": "low",
+   "pop": 0.2,
+   "max_w": 0.72
+  },
+  {
+   "t0": 55.24,
+   "t1": 58.24,
+   "main": "5×30",
+   "small": true,
+   "size": 70,
+   "y": 0.262,
+   "x": 0.6,
+   "stack": true,
+   "pos": "low",
+   "pop": 0.2
+  },
+  {
+   "t0": 56.28,
+   "t1": 58.24,
+   "main": "FULL THỔ CƯ",
+   "size": 124,
+   "y": 0.347,
+   "x": 0.48,
+   "stack": true,
+   "pos": "low",
+   "pop": 0.2,
+   "max_w": 0.72,
+   "sfx": "boom_tail"
+  },
+  {
+   "t0": 57.2,
+   "t1": 58.24,
+   "main": "BÊ TÔNG 6M",
+   "small": true,
+   "size": 70,
+   "y": 0.402,
+   "x": 0.6,
+   "stack": true,
+   "pos": "low",
+   "pop": 0.2
+  }
+ ],
+ "hotline_card": {
+  "t0": 58.46,
+  "t1": 60.04,
+  "number": "0949.435.499",
+  "x": 0.25,
+  "y": 0.565
+ },
+ "transitions": [
+  [
+   5.3,
+   "whip"
+  ],
+  [
+   17.95,
+   "zoom"
+  ],
+  [
+   30.84,
+   "whip"
+  ],
+  [
+   36.72,
+   "whip"
+  ],
+  [
+   39.98,
+   "zoom"
+  ],
+  [
+   47.96,
+   "whip"
+  ],
+  [
+   53.34,
+   "whip"
+  ]
+ ],
+ "audio": {
+  "sfx": [
+   {
+    "file": "swipe",
+    "t": 5.3
+   },
+   {
+    "file": "/home/claude/eaning/sfx_synth/ranh_1.23.wav",
+    "t": 18.02,
+    "db": -26
+   },
+   {
+    "file": "/home/claude/eaning/sfx_synth/ranh_1.46.wav",
+    "t": 20.95,
+    "db": -26
+   },
+   {
+    "file": "/home/claude/eaning/sfx_synth/ranh_1.68.wav",
+    "t": 23.87,
+    "db": -26
+   },
+   {
+    "file": "/home/claude/eaning/sfx_synth/whoosh.wav",
+    "t": 30.84,
+    "db": -26
+   },
+   {
+    "file": "riser_hit",
+    "t": 39.98
+   },
+   {
+    "file": "/home/claude/eaning/sfx_synth/ranh_1.90.wav",
+    "t": 40.93,
+    "db": -26
+   },
+   {
+    "file": "shimmer_soft",
+    "t": 43.23
+   },
+   {
+    "file": "/home/claude/eaning/sfx_synth/whoosh.wav",
+    "t": 47.96,
+    "db": -28
+   },
+   {
+    "file": "/home/claude/eaning/sfx_synth/ranh_1.80.wav",
+    "t": 49.97,
+    "db": -26
+   },
+   {
+    "file": "tinh_tien",
+    "t": 53.96
+   },
+   {
+    "file": "apple_pay",
+    "t": 38.95
+   },
+   {
+    "file": "apple_pay",
+    "t": 15.75
+   }
+  ],
+  "music_gain": 0.62,
+  "sfx_db": {
+   "whoosh": -26,
+   "hit": -17,
+   "out": -27
+  },
+  "music": "/home/claude/eaning/music/liad_shift.wav",
+  "music_trim_db": -1.7,
+  "sfx_auto": false,
+  "map_sfx": false
+ }
+}

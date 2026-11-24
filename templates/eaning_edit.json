@@ -1,0 +1,108 @@
+{
+ "_ghi_chu": "Ví dụ thật ĐẤT NỀN đã duyệt (15 lô Ea Ning 450tr, final v5, 24/11/2026) — tham khảo, không phải khuôn. Đường dẫn file là của phiên dựng đó.",
+ "ratio": "9:16",
+ "grade": {
+  "preset": "neutral",
+  "strength": 1.0,
+  "sat": 1.04
+ },
+ "end_hold": 0.3,
+ "broll": [
+  {
+   "t": 5.3,
+   "d": 4.3,
+   "src": "broll_916/sodo_ghep.mp4",
+   "in": 0.0,
+   "speed": 1.0,
+   "move": "none"
+  },
+  {
+   "t": 11.48,
+   "d": 3.58,
+   "src": "broll_916/sodo_ghep.mp4",
+   "in": 4.3,
+   "speed": 1.0,
+   "move": "none"
+  },
+  {
+   "t": 17.95,
+   "d": 2.65,
+   "src": "broll_916/EANING.mp4",
+   "in": 0.0,
+   "speed": 1.0,
+   "move": "none"
+  },
+  {
+   "t": 20.6,
+   "d": 10.24,
+   "src": "MAP1",
+   "move": "none"
+  },
+  {
+   "t": 30.84,
+   "d": 5.88,
+   "src": "broll_916/fly1111.mp4",
+   "in": 0.0,
+   "speed": 1.1,
+   "move": "none"
+  },
+  {
+   "t": 39.98,
+   "d": 7.98,
+   "src": "broll_916/QH1.mp4",
+   "in": 0.0,
+   "speed": 1.0,
+   "move": "none"
+  },
+  {
+   "t": 47.96,
+   "d": 5.38,
+   "src": "MAP2",
+   "move": "none"
+  }
+ ],
+ "aroll_zoom": [
+  {
+   "t": 0.0,
+   "d": 3.0,
+   "from": 1.0,
+   "to": 1.06
+  },
+  {
+   "t": 4.14,
+   "d": 1.1,
+   "type": "punch",
+   "scale": 1.12
+  },
+  {
+   "t": 9.66,
+   "d": 1.7,
+   "from": 1.0,
+   "to": 1.05
+  },
+  {
+   "t": 11.38,
+   "d": 0.9,
+   "type": "punch",
+   "scale": 1.12
+  },
+  {
+   "t": 15.06,
+   "d": 3.0,
+   "from": 1.0,
+   "to": 1.05
+  },
+  {
+   "t": 36.72,
+   "d": 3.2,
+   "from": 1.0,
+   "to": 1.06
+  },
+  {
+   "t": 53.34,
+   "d": 5.0,
+   "from": 1.0,
+   "to": 1.06
+  }
+ ]
+}

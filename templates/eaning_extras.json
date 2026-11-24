@@ -1,0 +1,117 @@
+{
+ "_ghi_chu": "Ví dụ thật ĐẤT NỀN đã duyệt (15 lô Ea Ning 450tr, final v5, 24/11/2026) — tham khảo, không phải khuôn. Đường dẫn file là của phiên dựng đó.",
+ "thumb": "thumb_lo.jpg",
+ "thumb_w": 300,
+ "pair": {
+  "id": "sodo_ghep",
+  "top": "/mnt/user-data/uploads/a Thịnh/so-do-phan-lo-142-toan-canh-SIEU-NET-v2-xanh-ngoc.jpg",
+  "top_crop": [
+   0.12,
+   0.43,
+   0.99,
+   0.995
+  ],
+  "bottom": "/mnt/user-data/uploads/a Thịnh/so-do-phan-lo-142-flycam-SIEU-NET-v2-xanh-ngoc.jpg",
+  "labels": [
+   "TOÀN CẢNH",
+   "SƠ ĐỒ PHÂN LÔ"
+  ],
+  "d": 8
+ },
+ "ranh": {
+  "id": "EANING",
+  "xa": "Ea Ning",
+  "map": "MAP1",
+  "d": 2.65
+ },
+ "zone": {
+  "id": "QH1",
+  "d": 7.98,
+  "poly": [
+   "12.632352, 108.221225",
+   "12.631589, 108.222053",
+   "12.628269, 108.223524",
+   "12.628583, 108.223938",
+   "12.627551, 108.224674",
+   "12.626025, 108.226099",
+   "12.626070, 108.226927",
+   "12.625397, 108.227525",
+   "12.624859, 108.227525",
+   "12.623019, 108.226467",
+   "12.623198, 108.216856",
+   "12.624948, 108.217362",
+   "12.626923, 108.217638",
+   "12.630782, 108.220167",
+   "12.631320, 108.220397"
+  ],
+  "home": "12.633029, 108.220984",
+  "image": "/home/claude/work/phoicanh.jpg",
+  "image_pts": [
+   [
+    487.29999999999995,
+    81.21666666666667
+   ],
+   [
+    140.28333333333333,
+    893.3833333333333
+   ],
+   [
+    1269.9333333333332,
+    886.0
+   ]
+  ],
+  "poly_pts": [
+   [
+    0,
+    14
+   ],
+   10,
+   9
+  ],
+  "t_draw": [
+   1.0,
+   2.9
+  ],
+  "t_reveal": [
+   3.25,
+   4.25
+  ],
+  "thumb_t": [
+   [
+    0.4,
+    1.9
+   ]
+  ],
+  "label": "PHỐI CẢNH MINH HOẠ"
+ },
+ "cards": {
+  "MAP1": [
+   {
+    "item": 0,
+    "src": "/home/claude/work/nutgiao.jpg",
+    "crop": [
+     0,
+     380,
+     436,
+     625
+    ]
+   },
+   {
+    "item": 1,
+    "src": "/home/claude/work/v1.mov",
+    "in": 4.0,
+    "t0": 5.5,
+    "t1": 7.3,
+    "stem": "elbow"
+   }
+  ],
+  "MAP2": [
+   {
+    "item": 0,
+    "src": "/home/claude/work/v2.mov",
+    "in": 5.5,
+    "t1": 5.8
+   }
+  ]
+ }
+}

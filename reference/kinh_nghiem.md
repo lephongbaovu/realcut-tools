@@ -41,3 +41,12 @@ Theo câu kết trong kịch bản; hotline ~2 s để kịp chụp màn hình; 
 - Đồ hoạ phối cảnh không được làm sai tỉ lệ (dài 15 phải trông dài hơn ngang 10).
 
 ## Mức âm (anh Vũ chốt 22/11/2026)
+
+## Bài học từ video đất nền đã duyệt (15 lô Ea Ning 450 tr, final v5, 24/11/2026)
+- Storyboard trước, dựng sau: anh sửa bảng phân cảnh (xlsx) rồi mới chạy base/fx — tiết kiệm nhiều vòng nháp.
+- Bản đồ là xương sống phần vị trí: ranh xã → zoom liền mạch vào lô → đường đi tới từng tiện ích (thẻ ảnh/video bật ra khi đường tới nơi) → toàn cảnh có bán kính. Không cắt cứng giữa các bản đồ cùng khu vực.
+- Hình minh hoạ của chính lô (sơ đồ phân lô) phải gắn với ghim: bung ra từ ghim đúng câu nói về lô, rồi thu về — không để thẻ đứng suốt che đường.
+- Quy hoạch lân cận: vẽ ranh trên vệ tinh khớp đường thật + quét lộ phối cảnh; ghi rõ "minh hoạ"; số liệu (66,8 ha) lấy theo bản vẽ, hỏi anh khi lời nói làm tròn.
+- Khoảng cách anh nói lệch số đo (vd thác 700 m vs 1,3 km đường bộ) → hiện số anh nói nhưng báo anh trong báo cáo, caption không ghi số đó.
+- Nhạc: một bài chạy liền từ đầu (dời đoạn hay nhất của bài lên đầu) hay hơn ghép bài mở đầu khác. Tiếng hiệu ứng có nghĩa: giá = tính tiền, tăng giá = apple pay, thông số = pop, ý chốt = boom, chuyển cảnh = whoosh, bản đồ = tiếng chạy ranh.
+- Nháp 540p 15 khung/s nhìn giựt — khi anh chê "giựt" trước hết xuất 1080p 30 khung/s cho anh xem độ mượt thật.

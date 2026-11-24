@@ -324,7 +324,7 @@ class FX:
         k = ease((t - p0) / 0.5); fo = 1 - eio((t - out) / 0.27)
         if fo <= 0: return
         cd = float(h.get('count', 0) or 0)          # "count": 0.9 → số chạy lên trong 0.9 s rồi chốt, chớp sáng vàng
-        sc = (1.18 - 0.18 * k) if not cd else 1.0 + h.get('pop', 0.14) * math.sin(math.pi * clamp((t - p0 - cd) / 0.45))   # chốt giá: to lên rồi hạ xuống
+        sc = (1.18 - 0.18 * k) if not cd else 1.0 + h.get('pop', 0.14) * math.sin(math.pi * clamp((t - p0 - cd) / h.get('pop_d', 0.45)))   # chốt giá: to lên rồi hạ xuống
         txt = h['price']
         if cd and t < p0 + cd:
             m = re.match(r'([\d.,]+)(.*)', txt)

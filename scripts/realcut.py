@@ -55,7 +55,7 @@ def setup():
     if not shutil.which('ffmpeg'):
         print('  → Windows: winget install Gyan.FFmpeg · macOS: brew install ffmpeg · rồi mở lại terminal')
     pk = [('numpy', 'numpy'), ('cv2', 'opencv-python-headless'), ('PIL', 'Pillow'), ('onnxruntime', 'onnxruntime'),
-          ('faster_whisper', 'faster-whisper'), ('scipy', 'scipy')]
+          ('faster_whisper', 'faster-whisper'), ('scipy', 'scipy'), ('openpyxl', 'openpyxl')]
     miss = [p for m, p in pk if importlib.util.find_spec(m) is None]
     if miss:
         print('· cài', ' '.join(miss))
@@ -148,6 +148,9 @@ def main():
         src, da = args[0], args[1]; out = os.path.join(da, 'broll_916')
         sh('prep_broll.py', src, out, *args[2:]); sh('broll_index.py', out, da)
     elif cmd == 'map': sh('mapfx.py', *args)
+    elif cmd == 'extras': sh('mapextra.py', *args)       # ranh xã · khu quy hoạch · 2 hình phân lô · thẻ hình ở điểm đến (DA/extras.json)
+    elif cmd == 'levels': sh('levels.py', *args)         # đo riêng giọng/nhạc/SFX so với mức đã chốt
+    elif cmd == 'storyboard': sh('storyboard.py', *args) # storyboard để anh sửa trước khi dựng
     elif cmd == 'fix': fix(args[0], args[1:])
     elif cmd == 'phrases': phrases(args[0])
     elif cmd == 'base': sh('base.py', *args)
